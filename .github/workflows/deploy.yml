@@ -1,0 +1,14 @@
+
+name: Post-Deploy Cache Refresh
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  refresh-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refresh Cache
+        run: |
+          curl -f "${{ secrets.REPLIT_URL }}/api/revalidate?tag=cms:all&warm=/&secret=${{ secrets.REVALIDATION_SECRET }}" || echo "Cache refresh failed"

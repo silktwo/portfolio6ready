@@ -4,6 +4,7 @@
 import { Badge } from "@/components/ui/badge"
 import { useEffect, useState } from "react"
 import Navigation from "@/components/navigation"
+import MobileNav from "@/components/mobile-nav"
 import BackToTop from "@/components/back-to-top"
 import { useRouter } from "next/navigation"
 import { getCaseProjects, type CaseProject } from "@/lib/notion-cases"
@@ -290,7 +291,13 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
   const hasDrafts = caseProject.draftProcess && caseProject.draftProcess.length > 0
 
   return (
-    <div className="bg-white min-h-screen overflow-x-hidden overscroll-y-none">
+    <div className="bg-white min-h-screen overflow-x-hidden">
+      <style>{`
+        html, body {
+          overscroll-behavior-y: none !important;
+        }
+      `}</style>
+
       {dataSource === "fallback" && (
         <div className="fixed top-20 left-0 right-0 z-50 flex justify-center">
           <div className="bg-yellow-50 border border-yellow-200 px-4 py-2 rounded-md shadow-md">
@@ -305,15 +312,17 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
         </div>
       )}
 
-      {/* Navigation - Overlaid on top of image */}
+      {/* Navigation - Overlaid on top of image, desktop only */}
       <div className="absolute top-0 left-0 right-0 z-40">
         <div className="w-[calc(100%-40px)] sm:w-[calc(100%-60px)] mx-[20px] sm:mx-[30px] py-[30px]">
-          <Navigation />
+          <div className="hidden md:block">
+            <Navigation />
+          </div>
         </div>
       </div>
 
-      {/* Case Navigation Block - Fixed - Responsive positioning */}
-      <div className="fixed top-[30px] right-[20px] sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:right-auto z-50">
+      {/* Case Navigation Block - Fixed - Desktop only */}
+      <div className="hidden md:block fixed top-[30px] left-1/2 transform -translate-x-1/2 z-50">
         <div className="bg-black rounded-xl p-1">
           <div className="flex flex-col gap-1">
             <button
@@ -630,6 +639,16 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
 
       {/* Back to Top Button */}
       <BackToTop />
+
+      {/* Mobile Navigation - only on mobile */}
+      <MobileNav
+        caseNav={{
+          projectTitle: caseProject.projectTitle,
+          hasDrafts,
+          onScrollTo: scrollToSection,
+          activeSection,
+        }}
+      />
 
       {/* Image Modal */}
       <ImageModal

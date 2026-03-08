@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Navigation from "@/components/navigation"
+import MobileNav from "@/components/mobile-nav"
 import BackToTop from "@/components/back-to-top"
 import Footer from "@/components/footer"
 import { Badge } from "@/components/ui/badge"
@@ -23,7 +24,7 @@ function ProjectCard({ project, className = "", onClick }: { project: CaseProjec
   const thumbnailImage = project.introImage || project.thumbnail || "/placeholder.svg?height=300&width=400"
 
   // Format title with category tags
-  const displayTitle = project.categoryTags.length > 0 
+  const displayTitle = project.categoryTags.length > 0
     ? `${project.projectTitle}, ${project.categoryTags.join(", ")}`
     : project.projectTitle
 
@@ -152,7 +153,9 @@ export default function HomeClient({ initialProjects }: { initialProjects: Proje
       <div className="w-[calc(100%-40px)] sm:w-[calc(100%-60px)] mx-[20px] sm:mx-[30px] py-[30px]">
         {/* Top Navigation */}
         <div className="mb-4">
-          <Navigation />
+          <div className="hidden md:block">
+            <Navigation />
+          </div>
         </div>
 
         {/* Three Column Info Section - Responsive */}
@@ -295,6 +298,9 @@ export default function HomeClient({ initialProjects }: { initialProjects: Proje
         {/* Back to Top Button */}
         <BackToTop />
       </div>
+
+      {/* Mobile Navigation */}
+      <MobileNav />
     </div>
   )
 }

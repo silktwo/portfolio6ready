@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge"
 import { useState } from "react"
 import Navigation from "@/components/navigation"
+import MobileNav from "@/components/mobile-nav"
 import BackToTop from "@/components/back-to-top"
 import Footer from "@/components/footer"
 import { formatDate, type BlogPost } from "@/lib/notion"
@@ -149,7 +150,9 @@ export default function JournalClient({ initialPosts }: { initialPosts: BlogPost
             <div className="w-[calc(100%-40px)] sm:w-[calc(100%-60px)] mx-[20px] sm:mx-[30px] py-[30px]">
                 {/* Top Navigation */}
                 <div className="mb-4">
-                    <Navigation activePage={activePage} setActivePage={setActivePage} />
+                    <div className="hidden md:block">
+                        <Navigation activePage={activePage} setActivePage={setActivePage} />
+                    </div>
                 </div>
 
                 {/* Online Status with Blinking Animation */}
@@ -231,6 +234,9 @@ export default function JournalClient({ initialPosts }: { initialPosts: BlogPost
 
             {/* Back to Top Button */}
             <BackToTop />
+            
+            {/* Mobile Navigation */}
+            <MobileNav />
         </div>
     )
 }

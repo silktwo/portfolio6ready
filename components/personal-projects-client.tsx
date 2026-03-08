@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Navigation from "@/components/navigation"
+import MobileNav from "@/components/mobile-nav"
 import BackToTop from "@/components/back-to-top"
 import Footer from "@/components/footer"
 import { type PersonalProject } from "@/lib/notion-projects-server"
@@ -177,7 +178,9 @@ export default function PersonalProjectsClient({ initialProjects }: { initialPro
     return (
         <div className="bg-white min-h-screen overflow-x-hidden">
             <div className="w-[calc(100%-40px)] sm:w-[calc(100%-60px)] mx-[20px] sm:mx-[30px] py-[30px] min-h-screen">
-                <Navigation activePage={activePage} setActivePage={setActivePage} />
+                <div className="hidden md:block">
+                    <Navigation activePage={activePage} setActivePage={setActivePage} />
+                </div>
 
                 <div className="mb-12">
                     <p className="font-medium text-gray-600 text-[14px] max-w-2xl mb-2">
@@ -206,6 +209,9 @@ export default function PersonalProjectsClient({ initialProjects }: { initialPro
                 <Footer />
                 <BackToTop />
             </div>
+
+            {/* Mobile Navigation */}
+            <MobileNav />
 
             <ImageModal
                 images={modalImages}

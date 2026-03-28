@@ -8,6 +8,7 @@ import BackToTop from "@/components/back-to-top"
 import Footer from "@/components/footer"
 import { formatDate, type BlogPost } from "@/lib/notion"
 import { X, ChevronLeft, ChevronRight } from "lucide-react"
+import { proxyNotionImage } from "@/lib/notion-image"
 
 // Image Lightbox Component
 function ImageLightbox({
@@ -122,9 +123,11 @@ export default function JournalClient({ initialPosts }: { initialPosts: BlogPost
             return (
                 <div className="w-full cursor-pointer" onClick={() => openLightbox(images, 0)}>
                     <img
-                        src={images[0].url || "/placeholder.svg"}
+                        src={proxyNotionImage(images[0].url) || "/placeholder.svg"}
                         alt={entry.description || "Journal image"}
                         className="w-full h-auto object-contain rounded-[6px] hover:opacity-90 transition-opacity"
+                        loading="lazy"
+                        decoding="async"
                     />
                 </div>
             )
@@ -134,9 +137,11 @@ export default function JournalClient({ initialPosts }: { initialPosts: BlogPost
                     {images.slice(0, 4).map((image, imgIndex) => (
                         <div key={imgIndex} className="cursor-pointer" onClick={() => openLightbox(images, imgIndex)}>
                             <img
-                                src={image.url || "/placeholder.svg"}
+                                src={proxyNotionImage(image.url) || "/placeholder.svg"}
                                 alt={`Journal image ${imgIndex + 1}`}
                                 className="w-full h-auto object-cover rounded-[6px] hover:opacity-90 transition-opacity aspect-square"
+                                loading="lazy"
+                                decoding="async"
                             />
                         </div>
                     ))}

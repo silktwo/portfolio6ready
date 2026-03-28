@@ -10,9 +10,21 @@ import { Separator } from "@/components/ui/separator"
 import { X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { type CaseProject } from "@/lib/notion-cases"
+import { proxyNotionImage } from "@/lib/notion-image"
 
 // Project Card Component
-function ProjectCard({ project, className = "", onClick }: { project: CaseProject; className?: string; onClick?: () => void }) {
+function ProjectCard({
+  project,
+  className = "",
+  onClick,
+  priority = false,
+}: {
+  project: CaseProject
+  className?: string
+  onClick?: () => void
+  /** true for the first visible card → eager load for better LCP */
+  priority?: boolean
+}) {
   const router = useRouter()
   const [imageError, setImageError] = useState(false)
 
@@ -20,19 +32,25 @@ function ProjectCard({ project, className = "", onClick }: { project: CaseProjec
     setImageError(true)
   }
 
-  // Use introImage as thumbnail if available, otherwise fallback to placeholder
-  const thumbnailImage = project.introImage || project.thumbnail || "/placeholder.svg?height=300&width=400"
+  // Proxy Notion URLs so they are cached by Vercel/Cloudflare and never expire
+  const rawThumbnail = project.thumbnail || project.introImage || ""
+  const thumbnailImage = imageError
+    ? "/placeholder.svg?height=300&width=400"
+    : proxyNotionImage(rawThumbnail) || "/placeholder.svg?height=300&width=400"
 
   // Format title with category tags
-  const displayTitle = project.categoryTags.length > 0
-    ? `${project.projectTitle}, ${project.categoryTags.join(", ")}`
-    : project.projectTitle
+  const displayTitle =
+    project.categoryTags.length > 0
+      ? `${project.projectTitle}, ${project.categoryTags.join(", ")}`
+      : project.projectTitle
 
   return (
     <div
-      className={`flex flex-col gap-2 ${className} ${project.comingSoon ? 'cursor-default' : 'cursor-pointer group'}`}
+      className={`flex flex-col gap-2 ${className} ${
+        project.comingSoon ? "cursor-default" : "cursor-pointer group"
+      }`}
       onClick={() => {
-        if (project.comingSoon) return // Don't allow navigation for coming soon items
+        if (project.comingSoon) return
         if (onClick) {
           onClick()
         } else {
@@ -40,18 +58,28 @@ function ProjectCard({ project, className = "", onClick }: { project: CaseProjec
         }
       }}
     >
-      <p className="font-medium text-black text-[12px] leading-[8px] uppercase">{displayTitle}</p>
+      <p className="font-medium text-black text-[12px] leading-[8px] uppercase">
+        {displayTitle}
+      </p>
       <div className="relative bg-gray-100 overflow-hidden transition-transform duration-200 group-hover:scale-[1.02] rounded-[6px]">
         <img
-          src={imageError ? "/placeholder.svg?height=300&width=400" : thumbnailImage}
+          src={thumbnailImage}
           alt={project.projectTitle}
-          className={`w-full h-full object-cover rounded-[6px] ${project.comingSoon ? 'blur-[20px]' : ''}`}
+          className={`w-full h-full object-cover rounded-[6px] ${
+            project.comingSoon ? "blur-[20px]" : ""
+          }`}
           style={{ height: "300px" }}
           onError={handleImageError}
+          // Eager + no decoding delay for above-the-fold cards
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          fetchPriority={priority ? "high" : "low"}
         />
         {project.comingSoon && (
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <Badge className="bg-black text-white rounded-[10px] px-4 py-1 font-medium text-[10px]">COMING SOON</Badge>
+            <Badge className="bg-black text-white rounded-[10px] px-4 py-1 font-medium text-[10px]">
+              COMING SOON
+            </Badge>
           </div>
         )}
       </div>
@@ -79,7 +107,11 @@ function ThreeColumnWorksSection({ activeFilters, projects }: { activeFilters: s
       {/* Mobile: Single column */}
       <div className="grid grid-cols-1 gap-[8px] md:hidden">
         {filteredProjects.map((project, index) => (
-          <ProjectCard key={`${project.slug || project.id}-${index}`} project={project} />
+          <ProjectCard
+            key={`${project.slug || project.id}-${index}`}
+            project={project}
+            priority={index === 0}
+          />
         ))}
       </div>
 
@@ -89,23 +121,30 @@ function ThreeColumnWorksSection({ activeFilters, projects }: { activeFilters: s
           {filteredProjects
             .filter((_, index) => index % 2 === 0)
             .map((project, index) => (
-              <ProjectCard key={`${project.slug || project.id}-${index}`} project={project} />
+              <ProjectCard
+                key={`${project.slug || project.id}-${index}`}
+                project={project}
+                priority={index === 0}
+              />
             ))}
         </div>
         <div className="flex flex-col gap-[8px]">
           {filteredProjects
             .filter((_, index) => index % 2 === 1)
             .map((project, index) => (
-              <ProjectCard key={`${project.slug || project.id}-${index}`} project={project} />
+              <ProjectCard
+                key={`${project.slug || project.id}-${index}`}
+                project={project}
+              />
             ))}
         </div>
       </div>
 
-      {/* Desktop: Three columns */}
+      {/* Desktop: Three columns – first card in each column gets priority */}
       <div className="hidden lg:grid grid-cols-3 gap-x-[10px] gap-y-[8px]">
         <div className="flex flex-col gap-[8px]">
           {column1.map((project, index) => (
-            <ProjectCard key={index} project={project} />
+            <ProjectCard key={index} project={project} priority={index === 0} />
           ))}
         </div>
         <div className="flex flex-col gap-[8px]">

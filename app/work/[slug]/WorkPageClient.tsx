@@ -8,6 +8,7 @@ import MobileNav from "@/components/mobile-nav"
 import BackToTop from "@/components/back-to-top"
 import { useRouter } from "next/navigation"
 import { getCaseProjects, type CaseProject } from "@/lib/notion-cases"
+import { proxyNotionImage } from "@/lib/notion-image"
 
 // Image Modal Component with full-screen display
 function ImageModal({
@@ -376,12 +377,16 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
         </div>
       </div>
 
-      {/* Cover Image - Full Screen, starts from top */}
+      {/* Cover Image - Full Screen, starts from top — LCP candidate */}
       <section id="project" className="w-full h-screen relative">
         <img
-          src={caseProject.introImage || "/placeholder.svg"}
+          src={proxyNotionImage(caseProject.introImage) || "/placeholder.svg"}
           alt={caseProject.projectTitle}
           className="w-full h-full object-cover"
+          // This is the Largest Contentful Paint element — prioritise it
+          loading="eager"
+          fetchPriority="high"
+          decoding="sync"
         />
         <div className="absolute inset-0 bg-black bg-opacity-20" />
       </section>
@@ -440,10 +445,12 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
                     onClick={() => openModal(index, caseProject.projectMedia)}
                   >
                     <img
-                      src={image || "/placeholder.svg"}
+                      src={proxyNotionImage(image) || "/placeholder.svg"}
                       alt={`${caseProject.projectTitle} - Image ${index + 1}`}
                       className="w-full h-auto object-cover block hover:opacity-90 transition-opacity"
                       style={{ display: "block", margin: 0, padding: 0, lineHeight: 0 }}
+                      loading="lazy"
+                      decoding="async"
                     />
                   </div>
                 )
@@ -458,10 +465,12 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
                       onClick={() => openModal(0, caseProject.projectMedia)}
                     >
                       <img
-                        src={image || "/placeholder.svg"}
+                        src={proxyNotionImage(image) || "/placeholder.svg"}
                         alt={`${caseProject.projectTitle} - Image 1`}
                         className="w-full h-full object-cover block hover:opacity-90 transition-opacity"
                         style={{ display: "block", margin: 0, padding: 0, lineHeight: 0 }}
+                        loading="lazy"
+                        decoding="async"
                       />
                     </div>
                     {nextImage && (
@@ -471,10 +480,12 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
                         onClick={() => openModal(1, caseProject.projectMedia)}
                       >
                         <img
-                          src={nextImage || "/placeholder.svg"}
+                          src={proxyNotionImage(nextImage) || "/placeholder.svg"}
                           alt={`${caseProject.projectTitle} - Image 2`}
                           className="w-full h-full object-cover block hover:opacity-90 transition-opacity"
                           style={{ display: "block", margin: 0, padding: 0, lineHeight: 0 }}
+                          loading="lazy"
+                          decoding="async"
                         />
                       </div>
                     )}
@@ -512,10 +523,12 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
                     onClick={() => openModal(actualIndex, caseProject.projectMedia)}
                   >
                     <img
-                      src={image || "/placeholder.svg"}
+                      src={proxyNotionImage(image) || "/placeholder.svg"}
                       alt={`${caseProject.projectTitle} - Gallery ${actualIndex + 1}`}
                       className="w-full h-auto object-cover block hover:opacity-90 transition-opacity"
                       style={{ display: "block", margin: 0, padding: 0, lineHeight: 0 }}
+                      loading="lazy"
+                      decoding="async"
                     />
                   </div>
                 )
@@ -535,10 +548,12 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
                         onClick={() => openModal(actualIndex, caseProject.projectMedia)}
                       >
                         <img
-                          src={image || "/placeholder.svg"}
+                          src={proxyNotionImage(image) || "/placeholder.svg"}
                           alt={`${caseProject.projectTitle} - Gallery ${actualIndex + 1}`}
                           className="w-full h-full object-cover block hover:opacity-90 transition-opacity"
                           style={{ display: "block", margin: 0, padding: 0, lineHeight: 0 }}
+                          loading="lazy"
+                          decoding="async"
                         />
                       </div>
                       <div
@@ -547,10 +562,12 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
                         onClick={() => openModal(actualIndex + 1, caseProject.projectMedia)}
                       >
                         <img
-                          src={nextImage || "/placeholder.svg"}
+                          src={proxyNotionImage(nextImage) || "/placeholder.svg"}
                           alt={`${caseProject.projectTitle} - Gallery ${actualIndex + 2}`}
                           className="w-full h-full object-cover block hover:opacity-90 transition-opacity"
                           style={{ display: "block", margin: 0, padding: 0, lineHeight: 0 }}
+                          loading="lazy"
+                          decoding="async"
                         />
                       </div>
                     </div>
@@ -565,10 +582,12 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
                       onClick={() => openModal(actualIndex, caseProject.projectMedia)}
                     >
                       <img
-                        src={image || "/placeholder.svg"}
+                        src={proxyNotionImage(image) || "/placeholder.svg"}
                         alt={`${caseProject.projectTitle} - Gallery ${actualIndex + 1}`}
                         className="w-full h-auto object-cover block hover:opacity-90 transition-opacity"
                         style={{ display: "block", margin: 0, padding: 0, lineHeight: 0 }}
+                        loading="lazy"
+                        decoding="async"
                       />
                     </div>
                   )
@@ -598,9 +617,11 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
               {caseProject.draftProcess.map((image, index) => (
                 <div key={index} className="flex-shrink-0 cursor-pointer" onClick={() => openModal(index, caseProject.draftProcess)}>
                   <img
-                    src={image || "/placeholder.svg"}
+                    src={proxyNotionImage(image) || "/placeholder.svg"}
                     alt={`${caseProject.projectTitle} - Draft ${index + 1}`}
                     className="h-[400px] w-auto object-cover block hover:opacity-90 transition-opacity"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
               ))}

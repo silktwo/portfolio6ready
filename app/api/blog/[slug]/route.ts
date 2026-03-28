@@ -3,9 +3,10 @@ import { getBlogPost } from "@/lib/notion"
 
 export const dynamic = "force-dynamic" // No caching
 
-export async function GET(request: Request, { params }: { params: { slug: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   try {
-    const post = await getBlogPost(params.slug)
+    const slug = (await params).slug;
+    const post = await getBlogPost(slug)
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 })
     }

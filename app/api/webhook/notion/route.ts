@@ -52,13 +52,13 @@ export async function POST(request: NextRequest) {
     const warmPaths: string[] = []
 
     // Always revalidate global tag
-    revalidateTag(GLOBAL_CMS_TAG)
+    revalidateTag(GLOBAL_CMS_TAG, "max")
     actions.push(`Revalidated global tag: ${GLOBAL_CMS_TAG}`)
 
     // Revalidate specific collection if known
     if (collection) {
       const collectionTag = adapter.tagFor(collection)
-      revalidateTag(collectionTag)
+      revalidateTag(collectionTag, "max")
       actions.push(`Revalidated collection: ${collection} (tag: ${collectionTag})`)
 
       // Revalidate specific path if slug is known

@@ -253,9 +253,9 @@ export function TransformNav({
                                 <a
                                     key={item.label}
                                     href={item.href}
-                                    className={`tnav-item \${activeLeft === item.label ? "tnav-item-active" : ""}`}
+                                    className={`tnav-item ${activeLeft === item.label ? "tnav-item-active" : ""}`}
                                     style={{
-                                        transitionDelay: leftOpen ?\`\${200 + i * 45}ms\` : "0ms",
+                                        transitionDelay: leftOpen ? `${200 + i * 45}ms` : "0ms",
                             color: "#fff",
                             fontSize: 11,
                             fontWeight: 600,
@@ -339,9 +339,9 @@ export function TransformNav({
                                 <a
                                     key={item.label}
                                     href={item.href}
-                                    className={`tnav-item \${activeRight === item.label ? "tnav-item-active" : ""}`}
+                                    className={`tnav-item ${activeRight === item.label ? "tnav-item-active" : ""}`}
                                     style={{
-                                        transitionDelay: rightOpen ?\`\${160 + i * 45}ms\` : "0ms",
+                                        transitionDelay: rightOpen ? `${160 + i * 45}ms` : "0ms",
                             color: "#fff",
                             fontSize: 14,
                             fontWeight: 400,
@@ -366,7 +366,7 @@ export function TransformNav({
                         aria-label="Close main menu"
                         style={{
                             opacity: rightOpen ? 1 : 0,
-                            transition: \`opacity 300ms ease \${160 + mainMenuItems.length * 45}ms\`,
+                            transition: `opacity 300ms ease ${160 + mainMenuItems.length * 45}ms`,
                 }}
               >
                     <Logo style={{ color: "#fff", width: 18, height: "auto" }} />

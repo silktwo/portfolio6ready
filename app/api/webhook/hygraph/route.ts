@@ -49,12 +49,12 @@ export async function POST(request: NextRequest) {
     const actions: string[] = []
     const warmPaths: string[] = []
 
-    revalidateTag(GLOBAL_CMS_TAG)
+    revalidateTag(GLOBAL_CMS_TAG, "max")
     actions.push(`Revalidated global tag: ${GLOBAL_CMS_TAG}`)
 
     if (collection) {
       const collectionTag = adapter.tagFor(collection)
-      revalidateTag(collectionTag)
+      revalidateTag(collectionTag, "max")
       actions.push(`Revalidated collection: ${collection}`)
 
       if (slug) {

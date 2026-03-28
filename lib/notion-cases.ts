@@ -201,7 +201,7 @@ export async function getCaseProjects(): Promise<{
           continue
         }
 
-        const properties = page.properties
+        const properties = page.properties as any
 
         // Extract required fields
         const projectTitle = extractTextFromRichText(properties.projectTitle?.title || [])

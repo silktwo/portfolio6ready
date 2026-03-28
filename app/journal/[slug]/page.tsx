@@ -2,10 +2,11 @@
 
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect, useState, use } from "react"
 import { formatDate, type BlogPost } from "@/lib/notion"
 
-export default function JournalArticle({ params }: { params: { slug: string } }) {
+export default function JournalArticle({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params)
   const [article, setArticle] = useState<BlogPost | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -14,7 +15,7 @@ export default function JournalArticle({ params }: { params: { slug: string } })
     async function fetchArticle() {
       try {
         setLoading(true)
-        const response = await fetch(`/api/blog/${params.slug}`)
+        const response = await fetch(`/api/blog/${slug}`)
         if (!response.ok) {
           if (response.status === 404) {
             throw new Error("Article not found")
@@ -34,7 +35,7 @@ export default function JournalArticle({ params }: { params: { slug: string } })
 
     fetchArticle()
     window.scrollTo(0, 0)
-  }, [params.slug])
+  }, [slug])
 
   if (loading) {
     return (
@@ -93,10 +94,10 @@ export default function JournalArticle({ params }: { params: { slug: string } })
               {article.content}
             </div>
           </div>
-        ) : article.excerpt ? (
+        ) : article.description ? (
           <div className="mb-12">
             <div className="font-medium text-black text-[14px] leading-[20px] whitespace-pre-line font-mono">
-              {article.excerpt}
+              {article.description}
             </div>
           </div>
         ) : (

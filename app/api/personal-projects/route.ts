@@ -87,9 +87,9 @@ async function getPersonalProjectsFromNotion(): Promise<PersonalProject[]> {
           slug,
           image,
           height: "200px",
-        }
+        } as PersonalProject
       })
-      .filter(Boolean)
+      .filter((project): project is PersonalProject => project !== null)
 
     console.log(`Successfully processed ${projects.length} valid projects`)
     return projects

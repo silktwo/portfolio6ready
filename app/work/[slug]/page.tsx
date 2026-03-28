@@ -72,7 +72,7 @@ function findProjectBySlug(projects: any[], targetSlug: string) {
   // Try matching by project title
   project = projects.find(p => {
     const titleWords = p.projectTitle.toLowerCase().split(/[\s,]+/)
-    return titleWords.some(word => targetWords.includes(word))
+    return titleWords.some((word: string) => targetWords.includes(word))
   })
 
   return project
@@ -124,7 +124,7 @@ export default async function WorkPage({ params }: Props) {
 
     // Try to get from database
     let project = await getCaseBySlug(resolvedParams.slug)
-    let dataSource = "database"
+    let dataSource: "database" | "fallback" = "database"
 
     // If not found with exact slug, try enhanced matching
     if (!project) {

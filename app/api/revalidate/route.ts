@@ -31,14 +31,14 @@ export async function GET(request: NextRequest) {
 
     // Handle tag revalidation
     if (tag) {
-      revalidateTag(tag)
+      revalidateTag(tag, "max")
       actions.push(`Revalidated tag: ${tag}`)
     }
 
     // Handle collection revalidation
     if (collection) {
       const collectionTag = `cms:${collection}`
-      revalidateTag(collectionTag)
+      revalidateTag(collectionTag, "max")
       actions.push(`Revalidated collection: ${collection} (tag: ${collectionTag})`)
     }
 
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
 
     // Default action if nothing specified
     if (!tag && !collection && !path && !warm) {
-      revalidateTag(GLOBAL_CMS_TAG)
+      revalidateTag(GLOBAL_CMS_TAG, "max")
       actions.push(`Revalidated global tag: ${GLOBAL_CMS_TAG}`)
     }
 

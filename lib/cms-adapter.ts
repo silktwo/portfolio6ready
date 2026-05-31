@@ -23,15 +23,15 @@ export class NotionAdapter implements CMSAdapter {
 
   async list(collection: string): Promise<any[]> {
     if (collection === 'cases') {
-      const { getCaseProjects } = await import('./notion-cases')
-      const result = await getCaseProjects()
+      const { getCaseProjectSummaries } = await import('./notion-cases')
+      const result = await getCaseProjectSummaries()
       return result.success ? result.data : []
     }
     return []
   }
 
   async get(collection: string, slug: string): Promise<any | null> {
-    if (collection === 'cases') {
+    if (collection === 'cases' || collection === 'case') {
       const { getCaseBySlug } = await import('./notion-cases')
       return await getCaseBySlug(slug)
     }
@@ -44,6 +44,7 @@ export class NotionAdapter implements CMSAdapter {
   }
 
   tagFor(collection: string): string {
+    if (collection === 'case') return 'cms:cases'
     return `cms:${collection}`
   }
 }

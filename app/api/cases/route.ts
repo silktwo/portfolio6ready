@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server"
-import { getCaseProjects } from "@/lib/notion-cases"
+import { getCaseProjectSummaries, getCaseProjects } from "@/lib/notion-cases"
 
 export const dynamic = "force-dynamic"
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     console.log("🚀 Cases API route called")
 
-    const result = await getCaseProjects()
+    const { searchParams } = new URL(request.url)
+    const result = searchParams.get("full") === "true"
+      ? await getCaseProjects()
+      : await getCaseProjectSummaries()
 
     console.log("📊 Cases API result:", {
       success: result.success,

@@ -1,26 +1,24 @@
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { getCachedData } from "@/lib/cache"
-import { type CaseProject } from "@/lib/notion-cases"
+import { type CaseProjectSummary } from "@/lib/notion-cases"
+import PortfolioState from "@/components/portfolio-state"
 
 export const revalidate = 1800
 
 export default async function WorkPage() {
-  const projects = await getCachedData<CaseProject[]>('cases') as CaseProject[] || []
+  const projects = await getCachedData<CaseProjectSummary[]>('cases') as CaseProjectSummary[] || []
 
   console.log(`📄 Work page rendered with ${projects.length} projects (cached)`)
 
   if (!projects || projects.length === 0) {
     return (
-      <div className="container mx-auto py-10">
-        <h1 className="text-3xl font-bold mb-6">Work</h1>
-        <div className="text-center py-16">
-          <p className="text-gray-500 mb-4">No projects found</p>
-          <p className="text-sm text-gray-400">
-            Make sure your Notion database has published projects with the required fields.
-          </p>
-        </div>
-      </div>
+      <PortfolioState
+        title="Work is being refreshed"
+        message="The archive is temporarily unavailable while the latest case studies are syncing."
+        actionHref="/"
+        actionLabel="Back to home"
+      />
     )
   }
 
@@ -67,15 +65,6 @@ export default async function WorkPage() {
           </Link>
         ))}
       </div>
-
-      {projects.length === 0 && (
-        <div className="text-center py-16">
-          <p className="text-gray-500 mb-4">No projects found</p>
-          <p className="text-sm text-gray-400">
-            Make sure your Notion database has published projects with the required fields.
-          </p>
-        </div>
-      )}
     </div>
   )
 }

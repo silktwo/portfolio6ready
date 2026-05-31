@@ -1,13 +1,12 @@
 "use client"
-// Force rebuild
 
+import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { useEffect, useState } from "react"
 import Navigation from "@/components/navigation"
 import MobileNav from "@/components/mobile-nav"
 import BackToTop from "@/components/back-to-top"
-import { useRouter } from "next/navigation"
-import { getCaseProjects, type CaseProject } from "@/lib/notion-cases"
+import { type CaseProject } from "@/lib/notion-cases"
 import { proxyNotionImage } from "@/lib/notion-image"
 
 // Image Modal Component with full-screen display
@@ -119,14 +118,75 @@ interface Props {
   }
   initialProject: CaseProject
   dataSource: "database" | "fallback"
+  caseNav?: {
+    previous?: CaseFooterLink | null
+    next?: CaseFooterLink | null
+  }
 }
 
-export default function WorkPageClient({ params, initialProject, dataSource }: Props) {
-  const router = useRouter()
-  const [caseProject, setCaseProject] = useState<CaseProject>(initialProject)
-  const [allProjects, setAllProjects] = useState<CaseProject[]>([initialProject])
-  const [currentProjectIndex, setCurrentProjectIndex] = useState(0)
-  const [loading, setLoading] = useState(false)
+interface CaseFooterLink {
+  projectTitle: string
+  slug: string
+  comingSoon?: boolean
+}
+
+function progressiveMediaStyle(minHeight = 420): React.CSSProperties {
+  return {
+    backgroundColor: "#eeeeee",
+    backgroundImage: "linear-gradient(90deg, #eeeeee 0%, #f6f6f6 40%, #eeeeee 80%)",
+    backgroundSize: "220% 100%",
+    contentVisibility: "auto",
+    containIntrinsicSize: `1px ${minHeight}px`,
+  }
+}
+
+function lazyImageProps(priority = false) {
+  return {
+    loading: priority ? "eager" as const : "lazy" as const,
+    decoding: priority ? "sync" as const : "async" as const,
+    fetchPriority: priority ? "high" as const : "low" as const,
+  }
+}
+
+function CaseFooterNav({ previous, next }: { previous?: CaseFooterLink | null; next?: CaseFooterLink | null }) {
+  if (!previous && !next) return null
+
+  const renderButton = (
+    project: CaseFooterLink | null | undefined,
+    label: string,
+    direction: "previous" | "next"
+  ) => {
+    if (!project) {
+      return <span className="block w-[104px] sm:w-[178px]" />
+    }
+
+    return (
+      <Link
+        href={`/work/${project.slug}`}
+        className="inline-flex h-8 w-[104px] items-center justify-center gap-1 rounded-full bg-black px-3 py-1 text-[10px] font-medium leading-none text-white transition-colors hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 sm:w-[178px] sm:-translate-y-2 sm:px-4 sm:text-[11px]"
+        aria-label={`${label}: ${project.projectTitle}`}
+      >
+        {direction === "previous" && <span className="text-[14px] leading-none">←</span>}
+        <span className="whitespace-nowrap">
+          <span className="sm:hidden">{direction === "previous" ? "Previous" : "Next"}</span>
+          <span className="hidden sm:inline">{label}</span>
+        </span>
+        {direction === "next" && <span className="text-[14px] leading-none">→</span>}
+      </Link>
+    )
+  }
+
+  return (
+    <div className="flex w-full items-center justify-center gap-3 sm:gap-16">
+      {renderButton(previous, "Previous project", "previous")}
+      <img src="/logo-case-footer.svg" alt="Logo Case Footer" className="w-[112px] h-auto shrink-0 sm:w-[200px]" />
+      {renderButton(next, "Next project", "next")}
+    </div>
+  )
+}
+
+export default function WorkPageClient({ initialProject, dataSource, caseNav }: Props) {
+  const caseProject = initialProject
   const [activeSection, setActiveSection] = useState("project")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -176,42 +236,6 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
     { name: "read.cv", url: "https://read.cv/tiredxs" },
     { name: "are.na", url: "https://www.are.na/dima-kifuliak" },
   ]
-
-  useEffect(() => {
-    const fetchAllProjects = async () => {
-      try {
-        setLoading(true)
-        const result = await getCaseProjects()
-
-        if (result.success && result.data.length > 0) {
-          // Add the current project if it's not from the database
-          if (dataSource === "fallback") {
-            const existingProject = result.data.find((p) => p.slug === initialProject.slug)
-            if (!existingProject) {
-              result.data.push(initialProject)
-            }
-          }
-
-          setAllProjects(result.data)
-
-          // Find current project index
-          const index = result.data.findIndex((p) => p.slug === params.slug)
-          setCurrentProjectIndex(index >= 0 ? index : 0)
-        } else if (dataSource === "fallback") {
-          // If we're using fallback data and database fetch failed, just use the initial project
-          setAllProjects([initialProject])
-        }
-      } catch (error) {
-        console.error("Failed to fetch all projects:", error)
-        // If fetch fails, ensure we at least have the current project
-        setAllProjects([initialProject])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchAllProjects()
-  }, [params.slug, initialProject, dataSource])
 
   // Parse team members from string
   const parseTeamMembers = (teamString: string): TeamMember[] => {
@@ -383,10 +407,8 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
           src={proxyNotionImage(caseProject.introImage) || "/placeholder.svg"}
           alt={caseProject.projectTitle}
           className="w-full h-full object-cover"
-          // This is the Largest Contentful Paint element — prioritise it
-          loading="eager"
-          fetchPriority="high"
-          decoding="sync"
+          style={{ backgroundColor: "#eeeeee" }}
+          {...lazyImageProps(true)}
         />
         <div className="absolute inset-0 bg-black bg-opacity-20" />
       </section>
@@ -429,7 +451,7 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
 
         {/* Full-width images without gaps after description */}
         {caseProject.projectMedia && caseProject.projectMedia.length > 0 && (
-          <div className="mt-16" style={{ lineHeight: 0 }}>
+          <div className="mt-16" style={{ lineHeight: 0, contentVisibility: "auto", containIntrinsicSize: "1px 900px" }}>
             {caseProject.projectMedia.slice(0, 3).map((image, index) => {
               // Pattern: 2 side-by-side (index 0–1) → 1 full (index 2)
               const isFullWidth = index === 2
@@ -448,9 +470,8 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
                       src={proxyNotionImage(image) || "/placeholder.svg"}
                       alt={`${caseProject.projectTitle} - Image ${index + 1}`}
                       className="w-full h-auto object-cover block hover:opacity-90 transition-opacity"
-                      style={{ display: "block", margin: 0, padding: 0, lineHeight: 0 }}
-                      loading="lazy"
-                      decoding="async"
+                      style={{ display: "block", margin: 0, padding: 0, lineHeight: 0, ...progressiveMediaStyle(720) }}
+                      {...lazyImageProps()}
                     />
                   </div>
                 )
@@ -468,9 +489,8 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
                         src={proxyNotionImage(image) || "/placeholder.svg"}
                         alt={`${caseProject.projectTitle} - Image 1`}
                         className="w-full h-full object-cover block hover:opacity-90 transition-opacity"
-                        style={{ display: "block", margin: 0, padding: 0, lineHeight: 0 }}
-                        loading="lazy"
-                        decoding="async"
+                        style={{ display: "block", margin: 0, padding: 0, lineHeight: 0, ...progressiveMediaStyle(520) }}
+                        {...lazyImageProps()}
                       />
                     </div>
                     {nextImage && (
@@ -483,9 +503,8 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
                           src={proxyNotionImage(nextImage) || "/placeholder.svg"}
                           alt={`${caseProject.projectTitle} - Image 2`}
                           className="w-full h-full object-cover block hover:opacity-90 transition-opacity"
-                          style={{ display: "block", margin: 0, padding: 0, lineHeight: 0 }}
-                          loading="lazy"
-                          decoding="async"
+                          style={{ display: "block", margin: 0, padding: 0, lineHeight: 0, ...progressiveMediaStyle(520) }}
+                          {...lazyImageProps()}
                         />
                       </div>
                     )}
@@ -501,7 +520,7 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
       </section>
 
       {/* Gallery Section - No title, continue alternating layout */}
-      <section id="gallery">
+      <section id="gallery" style={{ contentVisibility: "auto", containIntrinsicSize: "1px 1200px" }}>
         {/* Continue 2→full pattern without gaps */}
         {caseProject.projectMedia && caseProject.projectMedia.length > 3 && (
           <div style={{ lineHeight: 0 }}>
@@ -526,9 +545,8 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
                       src={proxyNotionImage(image) || "/placeholder.svg"}
                       alt={`${caseProject.projectTitle} - Gallery ${actualIndex + 1}`}
                       className="w-full h-auto object-cover block hover:opacity-90 transition-opacity"
-                      style={{ display: "block", margin: 0, padding: 0, lineHeight: 0 }}
-                      loading="lazy"
-                      decoding="async"
+                      style={{ display: "block", margin: 0, padding: 0, lineHeight: 0, ...progressiveMediaStyle(720) }}
+                      {...lazyImageProps()}
                     />
                   </div>
                 )
@@ -551,9 +569,8 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
                           src={proxyNotionImage(image) || "/placeholder.svg"}
                           alt={`${caseProject.projectTitle} - Gallery ${actualIndex + 1}`}
                           className="w-full h-full object-cover block hover:opacity-90 transition-opacity"
-                          style={{ display: "block", margin: 0, padding: 0, lineHeight: 0 }}
-                          loading="lazy"
-                          decoding="async"
+                          style={{ display: "block", margin: 0, padding: 0, lineHeight: 0, ...progressiveMediaStyle(520) }}
+                          {...lazyImageProps()}
                         />
                       </div>
                       <div
@@ -565,9 +582,8 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
                           src={proxyNotionImage(nextImage) || "/placeholder.svg"}
                           alt={`${caseProject.projectTitle} - Gallery ${actualIndex + 2}`}
                           className="w-full h-full object-cover block hover:opacity-90 transition-opacity"
-                          style={{ display: "block", margin: 0, padding: 0, lineHeight: 0 }}
-                          loading="lazy"
-                          decoding="async"
+                          style={{ display: "block", margin: 0, padding: 0, lineHeight: 0, ...progressiveMediaStyle(520) }}
+                          {...lazyImageProps()}
                         />
                       </div>
                     </div>
@@ -585,9 +601,8 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
                         src={proxyNotionImage(image) || "/placeholder.svg"}
                         alt={`${caseProject.projectTitle} - Gallery ${actualIndex + 1}`}
                         className="w-full h-auto object-cover block hover:opacity-90 transition-opacity"
-                        style={{ display: "block", margin: 0, padding: 0, lineHeight: 0 }}
-                        loading="lazy"
-                        decoding="async"
+                        style={{ display: "block", margin: 0, padding: 0, lineHeight: 0, ...progressiveMediaStyle(720) }}
+                        {...lazyImageProps()}
                       />
                     </div>
                   )
@@ -603,7 +618,7 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
 
       {/* Drafts Section */}
       {hasDrafts && (
-        <section id="drafts" className="py-0 relative">
+        <section id="drafts" className="py-0 relative" style={{ contentVisibility: "auto", containIntrinsicSize: "1px 460px" }}>
           {/* Process & Drafts button - absolute positioned on top left */}
           <div className="absolute top-8 left-8 z-10">
             <Badge className="inline-flex items-center justify-center gap-1 py-1 px-4 rounded-full bg-black hover:bg-gray-800 cursor-pointer h-8">
@@ -619,9 +634,9 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
                   <img
                     src={proxyNotionImage(image) || "/placeholder.svg"}
                     alt={`${caseProject.projectTitle} - Draft ${index + 1}`}
-                    className="h-[400px] w-auto object-cover block hover:opacity-90 transition-opacity"
-                    loading="lazy"
-                    decoding="async"
+                    className="h-[300px] w-auto object-cover block hover:opacity-90 transition-opacity sm:h-[400px]"
+                    style={progressiveMediaStyle(400)}
+                    {...lazyImageProps()}
                   />
                 </div>
               ))}
@@ -631,12 +646,12 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
       )}
 
       {/* Contact/Footer Section - Simplified */}
-      <section id="contact" className="py-16 bg-white">
+      <section id="contact" className="py-12 bg-white">
         <div className="max-w-[1200px] mx-auto px-[20px] sm:px-[30px]">
           {/* Social Links */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-12">
-            <span className="font-medium text-[#202020] text-[12px]">SOCIAL:</span>
-            <div className="flex items-center gap-3 flex-wrap justify-center">
+          <div className="mb-8 flex items-center justify-center gap-3 overflow-x-auto whitespace-nowrap">
+            <span className="font-medium text-[#202020] text-[12px] shrink-0">SOCIAL:</span>
+            <div className="flex shrink-0 items-center gap-3">
               {socialLinks.map((link, index) => (
                 <a
                   key={index}
@@ -651,9 +666,9 @@ export default function WorkPageClient({ params, initialProject, dataSource }: P
             </div>
           </div>
 
-          {/* Logo - Center */}
-          <div className="flex justify-center">
-            <img src="/logo-case-footer.svg" alt="Logo Case Footer" className="w-[200px] h-[103px]" />
+          {/* Logo and case navigation */}
+          <div className="flex min-h-[86px] items-center justify-center sm:min-h-[104px]">
+            <CaseFooterNav previous={caseNav?.previous} next={caseNav?.next} />
           </div>
         </div>
       </section>

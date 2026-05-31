@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server"
-import { getCaseBySlug } from "@/lib/notion-cases"
+import { getCachedData } from "@/lib/cache"
+import { type CaseProject } from "@/lib/notion-cases"
 
 export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   try {
     const slug = (await params).slug;
     console.log(`🔍 API: Fetching case with slug: ${slug}`)
 
-    const project = await getCaseBySlug(slug)
+    const project = await getCachedData<CaseProject>("case", slug) as CaseProject | null
 
     if (project) {
       console.log(`✅ API: Found project: ${project.projectTitle}`)

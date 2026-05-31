@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Navigation from "@/components/navigation"
 import MobileNav from "@/components/mobile-nav"
 import BackToTop from "@/components/back-to-top"
@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { X } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { type CaseProject } from "@/lib/notion-cases"
+import { type CaseProjectSummary } from "@/lib/notion-cases"
 import { proxyNotionImage } from "@/lib/notion-image"
 
 // Project Card Component
@@ -19,7 +19,7 @@ function ProjectCard({
   onClick,
   priority = false,
 }: {
-  project: CaseProject
+  project: CaseProjectSummary
   className?: string
   onClick?: () => void
   /** true for the first visible card → eager load for better LCP */
@@ -65,10 +65,12 @@ function ProjectCard({
         <img
           src={thumbnailImage}
           alt={project.projectTitle}
-          className={`w-full h-full object-cover rounded-[6px] ${
-            project.comingSoon ? "blur-[20px]" : ""
-          }`}
-          style={{ height: "300px" }}
+          className="w-full h-full object-cover rounded-[6px]"
+          style={{
+            height: "300px",
+            filter: project.comingSoon ? "blur(20px)" : undefined,
+            transform: project.comingSoon ? "scale(1.12)" : undefined,
+          }}
           onError={handleImageError}
           // Eager + no decoding delay for above-the-fold cards
           loading={priority ? "eager" : "lazy"}
@@ -88,7 +90,7 @@ function ProjectCard({
 }
 
 // Three Column Works Section Component
-function ThreeColumnWorksSection({ activeFilters, projects }: { activeFilters: string[]; projects: CaseProject[] }) {
+function ThreeColumnWorksSection({ activeFilters, projects }: { activeFilters: string[]; projects: CaseProjectSummary[] }) {
   // Filter projects based on active filters
   const filteredProjects =
     activeFilters.length === 0
@@ -163,7 +165,7 @@ function ThreeColumnWorksSection({ activeFilters, projects }: { activeFilters: s
 }
 
 // Define a type that is compatible with both CaseProject and your existing project types
-type ProjectWithCompat = CaseProject & {
+type ProjectWithCompat = CaseProjectSummary & {
   title?: string // Make title optional
   thumbnail?: string // Make thumbnail optional
   category?: string

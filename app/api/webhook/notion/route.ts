@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     // Warm all paths
     if (warmPaths.length > 0) {
-      await warmCache(warmPaths)
+      await warmCache(warmPaths, request.nextUrl.origin)
       actions.push(`Warmed ${warmPaths.length} paths`)
     }
 

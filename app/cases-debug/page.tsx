@@ -27,7 +27,7 @@ export default function CasesDebugPage() {
   const runDebugTest = async () => {
     setLoading(true)
     try {
-      const response = await fetch("/api/cases")
+      const response = await fetch("/api/cases?full=true")
       const result = await response.json()
       setDebugResult(result)
     } catch (error) {

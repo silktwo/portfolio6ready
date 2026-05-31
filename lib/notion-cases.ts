@@ -15,6 +15,29 @@ export interface CaseProject {
   comingSoon?: boolean // Added comingSoon field
 }
 
+export type CaseProjectSummary = Pick<
+  CaseProject,
+  | "id"
+  | "projectTitle"
+  | "categoryTags"
+  | "introImage"
+  | "thumbnail"
+  | "publish"
+  | "slug"
+  | "comingSoon"
+>
+
+type CaseProjectsResult<T> = {
+  success: boolean
+  data: T[]
+  metadata: {
+    count: number
+    errors: string[]
+    warnings: string[]
+    debugInfo: any
+  }
+}
+
 function cleanDatabaseId(id: string): string {
   return id.replace(/-/g, "")
 }
@@ -122,16 +145,9 @@ export async function getCaseBySlug(slug: string): Promise<CaseProject | null> {
   }
 }
 
-export async function getCaseProjects(): Promise<{
-  success: boolean
-  data: CaseProject[]
-  metadata: {
-    count: number
-    errors: string[]
-    warnings: string[]
-    debugInfo: any
-  }
-}> {
+async function getCaseProjectsInternal<T extends CaseProject | CaseProjectSummary>(
+  mode: "full" | "summary",
+): Promise<CaseProjectsResult<T>> {
   const metadata = {
     count: 0,
     errors: [] as string[],
@@ -140,7 +156,7 @@ export async function getCaseProjects(): Promise<{
   }
 
   try {
-    console.log("🔍 Starting case projects fetch...")
+    console.log(`🔍 Starting case projects ${mode} fetch...`)
 
     // Get environment variables with fallback
     const token = process.env.CASES_TOKEN || process.env.NOTION_TOKEN || process.env.PERSONAL_TOKEN
@@ -192,7 +208,7 @@ export async function getCaseProjects(): Promise<{
     console.log("📊 Raw response received:", response.results.length, "records")
     metadata.debugInfo.rawCount = response.results.length
 
-    const projects: CaseProject[] = []
+    const projects: T[] = []
 
     for (const page of response.results) {
       try {
@@ -205,17 +221,11 @@ export async function getCaseProjects(): Promise<{
 
         // Extract required fields
         const projectTitle = extractTextFromRichText(properties.projectTitle?.title || [])
-        const description = extractTextFromRichText(properties.description?.rich_text || [])
-        const team = extractTextFromRichText(properties.team?.rich_text || [])
         const categoryTags = extractMultiSelectFromProperty(properties.categoryTags?.multi_select || [])
         const introImage = extractFilesFromProperty(properties.introImage?.files || [])[0] || ""
         const thumbnail = extractFilesFromProperty(properties.thumbnail?.files || [])[0] || introImage // Use introImage as fallback
-        const projectMedia = extractFilesFromProperty(properties.projectMedia?.files || [])
-        const draftProcess = extractFilesFromProperty(properties.draftProcess?.files || [])
-        const addMedia = extractFilesFromProperty(properties.addMedia?.files || [])
         const publish = properties.publish?.checkbox || false
         const comingSoon = properties.comingSoon?.checkbox || false
-        const link = properties.link?.url || ""
 
         // Generate slug from title with enhanced logic
         const slug = generateEnhancedSlug(projectTitle)
@@ -237,24 +247,33 @@ export async function getCaseProjects(): Promise<{
           continue
         }
 
-        const project: CaseProject = {
+        const summary: CaseProjectSummary = {
           id: page.id,
           projectTitle,
           categoryTags,
-          description,
-          team,
           introImage,
           thumbnail,
-          projectMedia,
-          draftProcess,
-          addMedia,
           publish,
-          link,
           slug,
           comingSoon,
         }
 
-        projects.push(project)
+        if (mode === "summary") {
+          projects.push(summary as T)
+        } else {
+          const project: CaseProject = {
+            ...summary,
+            description: extractTextFromRichText(properties.description?.rich_text || []),
+            team: extractTextFromRichText(properties.team?.rich_text || []),
+            projectMedia: extractFilesFromProperty(properties.projectMedia?.files || []),
+            draftProcess: extractFilesFromProperty(properties.draftProcess?.files || []),
+            addMedia: extractFilesFromProperty(properties.addMedia?.files || []),
+            link: properties.link?.url || "",
+          }
+
+          projects.push(project as T)
+        }
+
         console.log("✅ Processed project:", projectTitle, "with slug:", slug)
       } catch (error) {
         metadata.warnings.push(
@@ -267,7 +286,7 @@ export async function getCaseProjects(): Promise<{
     metadata.count = projects.length
     metadata.debugInfo.processedCount = projects.length
 
-    console.log("🎉 Successfully processed", projects.length, "case projects")
+    console.log(`🎉 Successfully processed ${projects.length} case project ${mode} records`)
 
     return {
       success: true,
@@ -277,7 +296,7 @@ export async function getCaseProjects(): Promise<{
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
     metadata.errors.push(`Failed to fetch case projects: ${errorMessage}`)
-    console.error("❌ Error in getCaseProjects:", error)
+    console.error(`❌ Error in getCaseProjects ${mode}:`, error)
 
     return {
       success: false,
@@ -285,4 +304,12 @@ export async function getCaseProjects(): Promise<{
       metadata,
     }
   }
+}
+
+export async function getCaseProjectSummaries(): Promise<CaseProjectsResult<CaseProjectSummary>> {
+  return getCaseProjectsInternal<CaseProjectSummary>("summary")
+}
+
+export async function getCaseProjects(): Promise<CaseProjectsResult<CaseProject>> {
+  return getCaseProjectsInternal<CaseProject>("full")
 }

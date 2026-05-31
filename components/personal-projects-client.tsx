@@ -5,6 +5,7 @@ import Navigation from "@/components/navigation"
 import MobileNav from "@/components/mobile-nav"
 import BackToTop from "@/components/back-to-top"
 import Footer from "@/components/footer"
+import PortfolioState from "@/components/portfolio-state"
 import { type PersonalProject } from "@/lib/notion-projects-server"
 import { X } from "lucide-react"
 
@@ -175,6 +176,20 @@ export default function PersonalProjectsClient({ initialProjects }: { initialPro
         }
     }, [projects])
 
+    if (projects.length === 0) {
+        return (
+            <>
+                <PortfolioState
+                    title="Personal projects are being refreshed"
+                    message="This section is temporarily unavailable while the archive syncs."
+                    actionHref="/"
+                    actionLabel="Back to home"
+                />
+                <MobileNav />
+            </>
+        )
+    }
+
     return (
         <div className="bg-white min-h-screen overflow-x-hidden">
             <div className="w-[calc(100%-40px)] sm:w-[calc(100%-60px)] mx-[20px] sm:mx-[30px] py-[30px] min-h-screen">
@@ -190,20 +205,11 @@ export default function PersonalProjectsClient({ initialProjects }: { initialPro
                 </div>
 
                 <section className="w-full mb-16">
-                    {projects.length > 0 ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                            {projects.map((project, index) => (
-                                <ProjectCard key={project.id} project={project} onImageClick={() => openModal(index)} />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-20">
-                            <p className="text-gray-500 text-sm">No projects found in the database.</p>
-                            <p className="text-gray-400 text-xs mt-2">
-                                Add projects to your Notion database with workTitle and workFile fields.
-                            </p>
-                        </div>
-                    )}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                        {projects.map((project, index) => (
+                            <ProjectCard key={project.id} project={project} onImageClick={() => openModal(index)} />
+                        ))}
+                    </div>
                 </section>
 
                 <Footer />

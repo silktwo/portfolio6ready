@@ -45,14 +45,15 @@ export async function getCachedData<T>(
 }
 
 // Warm cache by fetching data without storing
-export async function warmCache(paths: string[]): Promise<void> {
+export async function warmCache(paths: string[], baseUrlOverride?: string): Promise<void> {
   if (paths.length === 0) return
   
   console.log(`🔥 Warming cache for ${paths.length} paths: ${paths.join(', ')}`)
   
-  const baseUrl = process.env.VERCEL_URL 
+  const baseUrl = baseUrlOverride
+    || (process.env.VERCEL_URL 
     ? `https://${process.env.VERCEL_URL}` 
-    : 'http://localhost:3000'
+    : 'http://localhost:3000')
   
   const warmPromises = paths.map(async (path) => {
     try {

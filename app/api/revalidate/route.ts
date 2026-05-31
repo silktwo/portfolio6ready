@@ -2,9 +2,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag, revalidatePath } from 'next/cache'
 import { warmCache } from '@/lib/cache'
-import { contentRegistry, GLOBAL_CMS_TAG } from '@/content.config'
+import { GLOBAL_CMS_TAG } from '@/content.config'
 
 export const dynamic = 'force-dynamic'
+
+function getDefaultWarmPaths(collection?: string, path?: string | null): string[] {
+  const paths = new Set<string>()
+
+  if (collection === 'cases') {
+    paths.add('/')
+    paths.add('/work')
+  } else if (collection) {
+    paths.add(`/${collection}`)
+  }
+
+  if (path) {
+    paths.add(path)
+  }
+
+  return Array.from(paths)
+}
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -28,6 +45,7 @@ export async function GET(request: NextRequest) {
     const warm = searchParams.get('warm')
 
     const actions: string[] = []
+    const warmPaths = new Set<string>()
 
     // Handle tag revalidation
     if (tag) {
@@ -40,19 +58,28 @@ export async function GET(request: NextRequest) {
       const collectionTag = `cms:${collection}`
       revalidateTag(collectionTag, "max")
       actions.push(`Revalidated collection: ${collection} (tag: ${collectionTag})`)
+
+      for (const warmPath of getDefaultWarmPaths(collection)) {
+        revalidatePath(warmPath)
+        warmPaths.add(warmPath)
+      }
     }
 
     // Handle path revalidation
     if (path) {
       revalidatePath(path)
       actions.push(`Revalidated path: ${path}`)
+      warmPaths.add(path)
     }
 
     // Handle warming
     if (warm) {
-      const warmPaths = warm.split(',').map(p => p.trim()).filter(Boolean)
-      await warmCache(warmPaths)
-      actions.push(`Warmed ${warmPaths.length} paths`)
+      warm.split(',').map(p => p.trim()).filter(Boolean).forEach(p => warmPaths.add(p))
+    }
+
+    if (warmPaths.size > 0) {
+      await warmCache(Array.from(warmPaths), request.nextUrl.origin)
+      actions.push(`Warmed ${warmPaths.size} paths`)
     }
 
     // Default action if nothing specified

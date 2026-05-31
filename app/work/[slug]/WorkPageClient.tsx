@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Navigation from "@/components/navigation"
 import MobileNav from "@/components/mobile-nav"
 import BackToTop from "@/components/back-to-top"
@@ -266,46 +266,69 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
     return members
   }
 
+  const hasDrafts = caseProject.draftProcess && caseProject.draftProcess.length > 0
+
   // Scroll to section function
-  const scrollToSection = (sectionId: string) => {
+  const scrollToSection = useCallback((sectionId: string) => {
     const element = document.getElementById(sectionId)
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" })
+      const targetTop = element.getBoundingClientRect().top + window.scrollY
+      window.scrollTo({ top: targetTop, behavior: "smooth" })
       setActiveSection(sectionId)
     }
-  }
+  }, [])
 
   // Handle scroll to update active section
   useEffect(() => {
+    const sectionIds = ["project", "info", "gallery", ...(hasDrafts ? ["drafts"] : []), "contact"]
+    let frameId: number | null = null
+
     const handleScroll = () => {
-      const sections = ["project", "info", "gallery", "drafts", "contact"]
-      const scrollPosition = window.scrollY + window.innerHeight / 2
+      if (frameId) return
 
-      // Check if we're near the bottom of the page
-      const isNearBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 100
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null
+        const isNearBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 120
 
-      if (isNearBottom) {
-        setActiveSection("contact")
-        return
-      }
+        if (isNearBottom) {
+          setActiveSection("contact")
+          return
+        }
 
-      // Otherwise, find the section that's currently in view
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const section = sections[i]
-        const element = document.getElementById(section)
-        if (element) {
-          const { offsetTop } = element
-          if (scrollPosition >= offsetTop) {
-            setActiveSection(section)
+        const anchor = Math.min(window.innerHeight * 0.38, 320)
+        let currentSection = sectionIds[0]
+
+        for (const sectionId of sectionIds) {
+          const element = document.getElementById(sectionId)
+          if (!element) continue
+
+          const rect = element.getBoundingClientRect()
+          if (rect.top <= anchor && rect.bottom > anchor) {
+            currentSection = sectionId
             break
           }
+
+          if (rect.top <= anchor) {
+            currentSection = sectionId
+          }
         }
-      }
+
+        setActiveSection(currentSection)
+      })
     }
 
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+    handleScroll()
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    window.addEventListener("resize", handleScroll)
+
+    return () => {
+      if (frameId) {
+        window.cancelAnimationFrame(frameId)
+      }
+      window.removeEventListener("scroll", handleScroll)
+      window.removeEventListener("resize", handleScroll)
+    }
+  }, [hasDrafts])
 
   // Add useEffect to ensure page starts at the top
   useEffect(() => {
@@ -313,7 +336,6 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
   }, [])
 
   const teamMembers = parseTeamMembers(caseProject.team)
-  const hasDrafts = caseProject.draftProcess && caseProject.draftProcess.length > 0
 
   return (
     <div className="bg-white min-h-screen overflow-x-hidden">

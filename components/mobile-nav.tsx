@@ -108,7 +108,7 @@ export default function MobileNav({ caseNav }: MobileNavProps) {
         if (caseNav) {
             caseNav.onScrollTo(section)
         }
-        // Menu remains open, user must manually click outside or the bar below to close
+        setLeftOpen(false)
     }
 
     return (
@@ -321,7 +321,7 @@ export default function MobileNav({ caseNav }: MobileNavProps) {
                                                 lineHeight: "34px",
                                                 padding: "0 12px",
                                             }}
-                                            onClick={(e) => { e.preventDefault(); handleCaseSection(item.section) }}
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCaseSection(item.section) }}
                                         >
                                             <span>{item.label}</span>
                                         </button>

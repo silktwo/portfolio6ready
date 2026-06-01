@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import "./globals.css"
 import { logCMSConfiguration } from "@/lib/cms-adapter"
+import { ThemeProvider } from "@/components/theme-provider"
 
 export const metadata: Metadata = {
   title: {
@@ -33,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/*
          * Preconnect to Notion S3 so TCP/TLS happens before images are
@@ -50,7 +51,11 @@ export default function RootLayout({
           href="https://prod-files-secure.s3.us-west-2.amazonaws.com"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   )
 }

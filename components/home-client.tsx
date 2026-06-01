@@ -61,16 +61,19 @@ function ProjectCard({
       <p className="font-medium text-black text-[12px] leading-[8px] uppercase">
         {displayTitle}
       </p>
-      <div className="relative bg-gray-100 overflow-hidden transition-transform duration-200 group-hover:scale-[1.02] rounded-[6px]">
+      <div
+        className={`relative h-[300px] overflow-hidden rounded-[6px] ${
+          project.comingSoon ? "isolate bg-[#8d8a82]" : "bg-gray-100 transition-transform duration-200 group-hover:scale-[1.02]"
+        }`}
+      >
         <img
           src={thumbnailImage}
           alt={project.projectTitle}
-          className="w-full h-full object-cover rounded-[6px]"
-          style={{
-            height: "300px",
-            filter: project.comingSoon ? "blur(20px)" : undefined,
-            transform: project.comingSoon ? "scale(1.12)" : undefined,
-          }}
+          className={
+            project.comingSoon
+              ? "absolute inset-0 h-full w-full object-cover transform-gpu scale-125 blur-[20px] opacity-90"
+              : "h-full w-full object-cover rounded-[6px]"
+          }
           onError={handleImageError}
           // Eager + no decoding delay for above-the-fold cards
           loading={priority ? "eager" : "lazy"}
@@ -78,11 +81,15 @@ function ProjectCard({
           fetchPriority={priority ? "high" : "low"}
         />
         {project.comingSoon && (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <Badge className="bg-black text-white rounded-[10px] px-4 py-1 font-medium text-[10px]">
-              COMING SOON
-            </Badge>
-          </div>
+          <>
+            <div className="absolute inset-0 bg-[rgba(14,14,14,0.16)]" />
+            <div className="absolute inset-0 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]" />
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+              <Badge className="bg-black text-white rounded-[10px] px-4 py-1 font-medium text-[10px]">
+                COMING SOON
+              </Badge>
+            </div>
+          </>
         )}
       </div>
     </div>
@@ -295,15 +302,11 @@ export default function HomeClient({ initialProjects }: { initialProjects: Proje
           {activeFilters.length > 0 && (
             <Badge
               onClick={clearFilters}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-full transition-colors cursor-pointer hover:opacity-80"
-              style={{
-                backgroundColor: "rgba(149, 149, 149, 0.40)",
-                color: "rgba(148, 148, 148, 1)",
-              }}
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full transition-colors cursor-pointer hover:opacity-80 bg-[rgba(149,149,149,0.40)] text-[#949494] dark:bg-[#e3e3e3] dark:text-[#080808]"
             >
               <span className="text-[11px] font-bold">CLEAR ALL</span>
-              <div className="w-3 h-3 bg-[#949494] rounded-full flex items-center justify-center flex-shrink-0">
-                <X className="w-2 h-2 text-white" />
+              <div className="w-3 h-3 bg-[#949494] rounded-full flex items-center justify-center flex-shrink-0 dark:bg-[#080808]">
+                <X className="w-2 h-2 text-white dark:text-[#e3e3e3]" />
               </div>
             </Badge>
           )}
@@ -313,16 +316,16 @@ export default function HomeClient({ initialProjects }: { initialProjects: Proje
               <Badge
                 key={index}
                 onClick={() => toggleFilter(filter)}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full transition-all duration-200 cursor-pointer hover:opacity-80"
-                style={{
-                  backgroundColor: isActive ? "rgba(149, 149, 149, 0.40)" : "rgba(149, 149, 149, 0.2)",
-                  color: "rgba(148, 148, 148, 1)",
-                }}
+                className={`inline-flex items-center gap-1 px-3 py-1 rounded-full transition-all duration-200 cursor-pointer hover:opacity-80 ${
+                  isActive
+                    ? "bg-[rgba(149,149,149,0.40)] text-[#949494] dark:bg-[#e3e3e3] dark:text-[#080808]"
+                    : "bg-[rgba(149,149,149,0.20)] text-[#949494] dark:bg-[#242424] dark:text-[#e3e3e3]"
+                }`}
               >
                 <span className="text-[11px] font-bold">{filter.toUpperCase()}</span>
                 {isActive && (
-                  <div className="w-3 h-3 bg-[#949494] rounded-full flex items-center justify-center flex-shrink-0 animate-in fade-in-0 zoom-in-95 duration-200">
-                    <X className="w-2 h-2 text-white" />
+                  <div className="w-3 h-3 bg-[#949494] rounded-full flex items-center justify-center flex-shrink-0 animate-in fade-in-0 zoom-in-95 duration-200 dark:bg-[#080808]">
+                    <X className="w-2 h-2 text-white dark:text-[#e3e3e3]" />
                   </div>
                 )}
               </Badge>

@@ -159,15 +159,11 @@ export default function CommercialClient({ initialProjects }: { initialProjects:
                     {activeFilters.length > 0 && (
                         <Badge
                             onClick={clearFilters}
-                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full transition-colors cursor-pointer hover:opacity-80"
-                            style={{
-                                backgroundColor: "rgba(149, 149, 149, 0.40)",
-                                color: "rgba(148, 148, 148, 1)",
-                            }}
+                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full transition-colors cursor-pointer hover:opacity-80 bg-[rgba(149,149,149,0.40)] text-[#949494] dark:bg-[#e3e3e3] dark:text-[#080808]"
                         >
                             <span className="text-[11px] font-bold">CLEAR ALL</span>
-                            <div className="w-3 h-3 bg-[#949494] rounded-full flex items-center justify-center flex-shrink-0">
-                                <X className="w-2 h-2 text-white" />
+                            <div className="w-3 h-3 bg-[#949494] dark:bg-[#080808] rounded-full flex items-center justify-center flex-shrink-0">
+                                <X className="w-2 h-2 text-white dark:text-[#e3e3e3]" />
                             </div>
                         </Badge>
                     )}
@@ -177,16 +173,15 @@ export default function CommercialClient({ initialProjects }: { initialProjects:
                             <Badge
                                 key={index}
                                 onClick={() => toggleFilter(filter)}
-                                className="inline-flex items-center gap-1 px-3 py-1 rounded-full transition-all duration-200 cursor-pointer hover:opacity-80"
-                                style={{
-                                    backgroundColor: isActive ? "rgba(149, 149, 149, 0.40)" : "rgba(149, 149, 149, 0.2)",
-                                    color: "rgba(148, 148, 148, 1)",
-                                }}
+                                className={`inline-flex items-center gap-1 px-3 py-1 rounded-full transition-all duration-200 cursor-pointer hover:opacity-80 ${isActive
+                                    ? "bg-[rgba(149,149,149,0.40)] text-[#949494] dark:bg-[#e3e3e3] dark:text-[#080808]"
+                                    : "bg-[rgba(149,149,149,0.20)] text-[#949494] dark:bg-[#242424] dark:text-[#e3e3e3]"
+                                    }`}
                             >
                                 <span className="text-[11px] font-bold">{filter.toUpperCase()}</span>
                                 {isActive && (
-                                    <div className="w-3 h-3 bg-[#949494] rounded-full flex items-center justify-center flex-shrink-0 animate-in fade-in-0 zoom-in-95 duration-200">
-                                        <X className="w-2 h-2 text-white" />
+                                    <div className="w-3 h-3 bg-[#949494] dark:bg-[#080808] rounded-full flex items-center justify-center flex-shrink-0 animate-in fade-in-0 zoom-in-95 duration-200">
+                                        <X className="w-2 h-2 text-white dark:text-[#e3e3e3]" />
                                     </div>
                                 )}
                             </Badge>

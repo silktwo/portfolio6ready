@@ -3,10 +3,12 @@
 import { useState, useEffect, useRef } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import BackToTop from "@/components/back-to-top"
+import ThemeToggle from "@/components/theme-toggle"
 
 interface CaseNavProps {
     projectTitle: string
     hasDrafts: boolean
+    hasShowreel?: boolean
     onScrollTo: (section: string) => void
     activeSection: string
 }
@@ -15,8 +17,8 @@ interface MobileNavProps {
     caseNav?: CaseNavProps
 }
 
-const siteLinks = [
-    { label: "Fonts", href: "#", disabled: true },
+const siteLinks: Array<{ label: string; href: string; disabled?: boolean }> = [
+    { label: "Fonts", href: "/fonts" },
     { label: "Journal", href: "/journal" },
     { label: "Commercial", href: "/commercial" },
     { label: "Personal Projects", href: "/personal-projects" },
@@ -56,7 +58,7 @@ const OPEN_W = 196
 const OPEN_R = 22
 
 const leftOpenH = (n: number) => 34 + n * 34 + 28 + 24
-const rightOpenH = (n: number) => n * 34 + 36 + 24
+const rightOpenH = (n: number) => n * 34 + 36 + 34 + 30
 
 export default function MobileNav({ caseNav }: MobileNavProps) {
     const [leftOpen, setLeftOpen] = useState(false)
@@ -90,6 +92,7 @@ export default function MobileNav({ caseNav }: MobileNavProps) {
 
     const projectMenuItems = caseNav ? [
         { label: "PROJECT INFO", section: "info" },
+        ...(caseNav.hasShowreel ? [{ label: "SHOWREEL", section: "showreel" }] : []),
         { label: "GALLERY", section: "gallery" },
         ...(caseNav.hasDrafts ? [{ label: "DRAFTS", section: "drafts" }] : []),
         { label: "CONTACT", section: "contact" },
@@ -207,8 +210,11 @@ export default function MobileNav({ caseNav }: MobileNavProps) {
         /* Active item badge style (Desktop Case match) */
         .tnav-item-active {
           background: #eaeaea !important;
-          color: #202020 !important;
+          color: #080808 !important;
           padding: 0 16px !important; /* give it wider pill feel */
+        }
+        .tnav-item-active span {
+          color: #080808 !important;
         }
 
         /* Project name badge */
@@ -235,7 +241,7 @@ export default function MobileNav({ caseNav }: MobileNavProps) {
         }
         .tnav-badge.active {
           background: #eaeaea;
-          color: #202020;
+          color: #080808;
         }
         .tnav-badge:hover:not(.active) { color: #fff; background: #1f2937; }
 
@@ -267,6 +273,36 @@ export default function MobileNav({ caseNav }: MobileNavProps) {
           color: rgba(255, 255, 255, 0.3) !important;
           cursor: not-allowed !important;
         }
+
+        .dark .tnav-pill {
+          background: #e3e3e3;
+          color: #080808;
+        }
+        .dark .tnav-item {
+          color: #080808;
+        }
+        .dark .tnav-item:hover:not(.tnav-item-active):not(.tnav-item-disabled) {
+          background: #d0d0d0;
+          color: #080808;
+        }
+        .dark .tnav-item-active,
+        .dark .tnav-badge.active {
+          background: #eaeaea !important;
+          color: #080808 !important;
+        }
+        .dark .tnav-item-active span {
+          color: #080808 !important;
+        }
+        .dark .tnav-badge {
+          color: #080808;
+        }
+        .dark .tnav-badge:hover:not(.active) {
+          background: #d0d0d0;
+          color: #080808;
+        }
+        .dark .tnav-item-disabled {
+          color: rgba(8, 8, 8, 0.35) !important;
+        }
       `}</style>
 
             <nav
@@ -291,7 +327,7 @@ export default function MobileNav({ caseNav }: MobileNavProps) {
                         >
                             {/* Closed icon */}
                             <div className="tnav-icon">
-                                <div style={{ width: 28, height: 2, background: "#fff", borderRadius: 999 }} />
+                                <div style={{ width: 28, height: 2, background: "currentColor", borderRadius: 999 }} />
                             </div>
 
                             {/* Open body */}
@@ -350,7 +386,7 @@ export default function MobileNav({ caseNav }: MobileNavProps) {
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10, pointerEvents: "none" }} ref={rightRef}>
                     {/* Scroll to top */}
                     <div className="pointer-events-auto origin-bottom flex-shrink-0">
-                        <BackToTop className="flex items-center justify-center w-[40px] h-[40px] rounded-[50%] bg-[#000] text-white hover:bg-[#222] transition-colors duration-200" iconClassName="w-4 h-4" />
+                        <BackToTop className="flex items-center justify-center w-[40px] h-[40px] rounded-[50%] bg-[#000] text-white hover:bg-[#222] transition-colors duration-200 dark:bg-[#e3e3e3] dark:text-[#080808] dark:hover:bg-[#cfcfcf]" iconClassName="w-4 h-4" />
                     </div>
 
                     {/* Right pill */}
@@ -369,11 +405,13 @@ export default function MobileNav({ caseNav }: MobileNavProps) {
                     >
                         {/* Closed icon */}
                         <div className="tnav-icon">
-                            <Logo style={{ color: "#fff" }} />
+                            <Logo style={{ color: "currentColor" }} />
                         </div>
 
                         {/* Open body */}
                         <div className="tnav-body" style={{ justifyContent: "space-between" }}>
+                            <ThemeToggle surface="dark" className="mx-auto flex-shrink-0" />
+
                             {/* Items */}
                             <div style={{ display: "flex", flexDirection: "column", flex: 1, justifyContent: "center" }}>
                                 {siteLinks.map((item, i) => {
@@ -421,8 +459,8 @@ export default function MobileNav({ caseNav }: MobileNavProps) {
                                     transition: `opacity 300ms ease ${160 + siteLinks.length * 45}ms`,
                                 }}
                             >
-                                <Logo style={{ color: "#fff", width: 18, height: "auto" }} />
-                                <span style={{ color: "#fff", fontSize: 13, fontWeight: 500, whiteSpace: "nowrap" }}>
+                                <Logo style={{ color: "currentColor", width: 18, height: "auto" }} />
+                                <span style={{ color: "currentColor", fontSize: 13, fontWeight: 500, whiteSpace: "nowrap" }}>
                                     Dmytro Kifuliak
                                 </span>
                             </div>

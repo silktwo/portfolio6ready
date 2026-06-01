@@ -163,10 +163,10 @@ export default function JournalClient({ initialPosts }: { initialPosts: BlogPost
                 {/* Online Status with Blinking Animation */}
                 <Badge
                     variant="outline"
-                    className="inline-flex items-center justify-center gap-[5px] pl-1.5 pr-2.5 py-0.5 mb-8 rounded-full border border-solid border-gray-200"
+                    className="inline-flex items-center justify-center gap-[5px] pl-1.5 pr-2.5 py-0.5 mb-8 rounded-full border border-solid border-gray-200 dark:border-[#1fef00] dark:bg-[#1fef00]"
                 >
-                    <div className="relative w-1 h-1 bg-[#1fef00] rounded-sm animate-pulse" />
-                    <span className="relative w-fit mt-[-1px] font-medium text-[#0e0e0e] text-[11px] tracking-[0] leading-[normal]">
+                    <div className="relative w-1 h-1 bg-[#1fef00] rounded-sm animate-pulse dark:bg-[#080808]" />
+                    <span className="relative w-fit mt-[-1px] font-medium text-[#0e0e0e] text-[11px] tracking-[0] leading-[normal] dark:text-[#080808]">
                         Online
                     </span>
                 </Badge>

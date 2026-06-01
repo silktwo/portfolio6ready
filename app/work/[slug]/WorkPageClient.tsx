@@ -148,6 +148,35 @@ function lazyImageProps(priority = false) {
   }
 }
 
+function getVimeoEmbedUrl(url: string | undefined): string | null {
+  if (!url) return null
+
+  const normalizedUrl = url.startsWith("http") ? url : `https://${url}`
+
+  try {
+    const parsed = new URL(normalizedUrl)
+    const videoId = parsed.pathname.match(/\/video\/(\d+)/)?.[1] || parsed.pathname.match(/\/(\d+)/)?.[1]
+    if (!videoId) return null
+
+    const embed = new URL(`https://player.vimeo.com/video/${videoId}`)
+    const privacyHash = parsed.searchParams.get("h")
+
+    if (privacyHash) {
+      embed.searchParams.set("h", privacyHash)
+    }
+
+    embed.searchParams.set("title", "0")
+    embed.searchParams.set("byline", "0")
+    embed.searchParams.set("portrait", "0")
+    embed.searchParams.set("controls", "1")
+    embed.searchParams.set("dnt", "1")
+
+    return embed.toString()
+  } catch {
+    return null
+  }
+}
+
 function CaseFooterNav({ previous, next }: { previous?: CaseFooterLink | null; next?: CaseFooterLink | null }) {
   if (!previous && !next) return null
 
@@ -163,7 +192,7 @@ function CaseFooterNav({ previous, next }: { previous?: CaseFooterLink | null; n
     return (
       <Link
         href={`/work/${project.slug}`}
-        className="inline-flex h-8 w-[104px] items-center justify-center gap-1 rounded-full bg-black px-3 py-1 text-[10px] font-medium leading-none text-white transition-colors hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 sm:w-[178px] sm:-translate-y-2 sm:px-4 sm:text-[11px]"
+        className="inline-flex h-8 w-[104px] items-center justify-center gap-1 rounded-full bg-black px-3 py-1 text-[10px] font-medium leading-none text-white transition-colors hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 dark:bg-[#e3e3e3] dark:text-[#080808] dark:hover:bg-[#cfcfcf] sm:w-[178px] sm:px-4 sm:text-[11px]"
         aria-label={`${label}: ${project.projectTitle}`}
       >
         {direction === "previous" && <span className="text-[14px] leading-none">←</span>}
@@ -177,11 +206,29 @@ function CaseFooterNav({ previous, next }: { previous?: CaseFooterLink | null; n
   }
 
   return (
-    <div className="flex w-full items-center justify-center gap-3 sm:gap-16">
+    <div className="flex w-full items-center justify-between gap-3 sm:justify-center sm:gap-5">
       {renderButton(previous, "Previous project", "previous")}
-      <img src="/logo-case-footer.svg" alt="Logo Case Footer" className="w-[112px] h-auto shrink-0 sm:w-[200px]" />
       {renderButton(next, "Next project", "next")}
     </div>
+  )
+}
+
+function ShowreelSection({ title, url }: { title: string; url: string }) {
+  return (
+    <section
+      id="showreel"
+      className="mt-16 h-[100svh] min-h-[520px] w-full bg-black dark:bg-black"
+      style={{ contentVisibility: "auto", containIntrinsicSize: "1px 900px" }}
+    >
+      <iframe
+        src={url}
+        title={`${title} showreel`}
+        className="h-full w-full border-0"
+        allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
+        loading="lazy"
+        allowFullScreen
+      />
+    </section>
   )
 }
 
@@ -267,6 +314,8 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
   }
 
   const hasDrafts = caseProject.draftProcess && caseProject.draftProcess.length > 0
+  const showreelEmbedUrl = getVimeoEmbedUrl(caseProject.showreel)
+  const hasShowreel = Boolean(showreelEmbedUrl)
 
   // Scroll to section function
   const scrollToSection = useCallback((sectionId: string) => {
@@ -280,7 +329,7 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
 
   // Handle scroll to update active section
   useEffect(() => {
-    const sectionIds = ["project", "info", "gallery", ...(hasDrafts ? ["drafts"] : []), "contact"]
+    const sectionIds = ["project", "info", ...(hasShowreel ? ["showreel"] : []), "gallery", ...(hasDrafts ? ["drafts"] : []), "contact"]
     let frameId: number | null = null
 
     const handleScroll = () => {
@@ -328,7 +377,7 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
       window.removeEventListener("scroll", handleScroll)
       window.removeEventListener("resize", handleScroll)
     }
-  }, [hasDrafts])
+  }, [hasDrafts, hasShowreel])
 
   // Add useEffect to ensure page starts at the top
   useEffect(() => {
@@ -338,7 +387,7 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
   const teamMembers = parseTeamMembers(caseProject.team)
 
   return (
-    <div className="bg-white min-h-screen overflow-x-hidden">
+    <div className="case-page bg-white min-h-screen overflow-x-hidden transition-colors dark:bg-[#080808]">
       <style>{`
         html, body {
           overscroll-behavior-y: none !important;
@@ -375,7 +424,7 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
             <button
               onClick={() => scrollToSection("project")}
               className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-colors ${activeSection === "project"
-                ? "bg-[#eaeaea] text-[#202020]"
+                ? "bg-[#eaeaea] !text-[#080808]"
                 : "bg-transparent text-[#eaeaea] hover:bg-gray-800"
                 }`}
             >
@@ -384,16 +433,25 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
             <button
               onClick={() => scrollToSection("info")}
               className={`px-3 py-1.5 rounded-xl text-[11px] font-medium transition-colors ${activeSection === "info"
-                ? "bg-[#eaeaea] text-[#202020]"
+                ? "bg-[#eaeaea] !text-[#080808]"
                 : "bg-transparent text-[#eaeaea] hover:bg-gray-800"
                 }`}
             >
               PROJECT INFO
             </button>
             <button
+              onClick={() => scrollToSection("showreel")}
+              className={`px-3 py-1.5 rounded-xl text-[11px] font-medium transition-colors ${activeSection === "showreel"
+                ? "bg-[#eaeaea] !text-[#080808]"
+                : "bg-transparent text-[#eaeaea] hover:bg-gray-800"
+                } ${hasShowreel ? "" : "hidden"}`}
+            >
+              SHOWREEL
+            </button>
+            <button
               onClick={() => scrollToSection("gallery")}
               className={`px-3 py-1.5 rounded-xl text-[11px] font-medium transition-colors ${activeSection === "gallery"
-                ? "bg-[#eaeaea] text-[#202020]"
+                ? "bg-[#eaeaea] !text-[#080808]"
                 : "bg-transparent text-[#eaeaea] hover:bg-gray-800"
                 }`}
             >
@@ -403,7 +461,7 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
               <button
                 onClick={() => scrollToSection("drafts")}
                 className={`px-3 py-1.5 rounded-xl text-[11px] font-medium transition-colors ${activeSection === "drafts"
-                  ? "bg-[#eaeaea] text-[#202020]"
+                  ? "bg-[#eaeaea] !text-[#080808]"
                   : "bg-transparent text-[#eaeaea] hover:bg-gray-800"
                   }`}
               >
@@ -413,7 +471,7 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
             <button
               onClick={() => scrollToSection("contact")}
               className={`px-3 py-1.5 rounded-xl text-[11px] font-medium transition-colors ${activeSection === "contact"
-                ? "bg-[#eaeaea] text-[#202020]"
+                ? "bg-[#eaeaea] !text-[#080808]"
                 : "bg-transparent text-[#eaeaea] hover:bg-gray-800"
                 }`}
             >
@@ -436,30 +494,30 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
       </section>
 
       {/* Project Information Section */}
-      <section id="info" className="pt-16 pb-0">
+      <section id="info" className="pt-16 pb-0 dark:bg-[#080808]">
         <div className="max-w-[1200px] mx-auto px-[20px] sm:px-[30px]">
           {/* Project Information Header */}
           <div className="text-center mb-8">
-            <h2 className="font-bold text-black text-[11px] tracking-[0] leading-[normal] mb-4">PROJECT INFORMATION</h2>
+            <h2 className="font-bold text-black text-[11px] tracking-[0] leading-[normal] mb-4 dark:text-[#e3e3e3]">PROJECT INFORMATION</h2>
           </div>
 
           <div className="flex flex-col lg:flex-row items-start gap-6 lg:gap-12 max-w-[800px] mx-auto">
             {/* Description - Left Side */}
             <div className="flex-1">
-              <h3 className="font-medium text-black text-[11px] mb-4 tracking-[0] leading-[normal]">DESCRIPTION:</h3>
-              <p className="font-medium text-black text-[12px] tracking-[0] leading-[normal]">
+              <h3 className="font-medium text-black text-[11px] mb-4 tracking-[0] leading-[normal] dark:text-[#e3e3e3]">DESCRIPTION:</h3>
+              <p className="font-medium text-black text-[12px] tracking-[0] leading-[normal] dark:text-[#e3e3e3]">
                 {caseProject.description}
               </p>
             </div>
 
             {/* Team Credits - Right Side with Roboto Mono */}
             <div className="w-full lg:w-[300px]">
-              <h3 className="font-medium text-black text-[11px] mb-4 tracking-[0] leading-[normal]">TEAM:</h3>
+              <h3 className="font-medium text-black text-[11px] mb-4 tracking-[0] leading-[normal] dark:text-[#e3e3e3]">TEAM:</h3>
               <div className="space-y-2">
                 {teamMembers.map((member, index) => (
                   <div
                     key={index}
-                    className={`font-mono text-[11px] tracking-[0] leading-[normal] ${member.isPrimary ? "text-black" : "text-[#939393]"
+                    className={`font-mono text-[11px] tracking-[0] leading-[normal] ${member.isPrimary ? "text-black dark:text-[#e3e3e3]" : "text-[#939393] dark:text-[#8f8f8f]"
                       }`}
                     style={{ fontFamily: "Roboto Mono, monospace" }}
                   >
@@ -470,10 +528,17 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
             </div>
           </div>
         </div>
+      </section>
 
+      {showreelEmbedUrl && (
+        <ShowreelSection title={caseProject.projectTitle} url={showreelEmbedUrl} />
+      )}
+
+      {/* Gallery Section - No title, continue alternating layout */}
+      <section id="gallery" className="dark:bg-[#080808]" style={{ contentVisibility: "auto", containIntrinsicSize: "1px 1200px" }}>
         {/* Full-width images without gaps after description */}
         {caseProject.projectMedia && caseProject.projectMedia.length > 0 && (
-          <div className="mt-16" style={{ lineHeight: 0, contentVisibility: "auto", containIntrinsicSize: "1px 900px" }}>
+          <div className={showreelEmbedUrl ? "mt-0" : "mt-16"} style={{ lineHeight: 0, contentVisibility: "auto", containIntrinsicSize: "1px 900px" }}>
             {caseProject.projectMedia.slice(0, 3).map((image, index) => {
               // Pattern: 2 side-by-side (index 0–1) → 1 full (index 2)
               const isFullWidth = index === 2
@@ -539,10 +604,7 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
             })}
           </div>
         )}
-      </section>
 
-      {/* Gallery Section - No title, continue alternating layout */}
-      <section id="gallery" style={{ contentVisibility: "auto", containIntrinsicSize: "1px 1200px" }}>
         {/* Continue 2→full pattern without gaps */}
         {caseProject.projectMedia && caseProject.projectMedia.length > 3 && (
           <div style={{ lineHeight: 0 }}>
@@ -640,7 +702,7 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
 
       {/* Drafts Section */}
       {hasDrafts && (
-        <section id="drafts" className="py-0 relative" style={{ contentVisibility: "auto", containIntrinsicSize: "1px 460px" }}>
+        <section id="drafts" className="py-0 relative dark:bg-[#080808]" style={{ contentVisibility: "auto", containIntrinsicSize: "1px 460px" }}>
           {/* Process & Drafts button - absolute positioned on top left */}
           <div className="absolute top-8 left-8 z-10">
             <Badge className="inline-flex items-center justify-center gap-1 py-1 px-4 rounded-full bg-black hover:bg-gray-800 cursor-pointer h-8">
@@ -668,11 +730,15 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
       )}
 
       {/* Contact/Footer Section - Simplified */}
-      <section id="contact" className="py-12 bg-white">
-        <div className="max-w-[1200px] mx-auto px-[20px] sm:px-[30px]">
+      <section id="contact" className="pt-5 pb-12 bg-white dark:bg-[#080808] sm:pt-8">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-[30px]">
+          <div className="mb-8 flex items-center justify-center">
+            <CaseFooterNav previous={caseNav?.previous} next={caseNav?.next} />
+          </div>
+
           {/* Social Links */}
           <div className="mb-8 flex items-center justify-center gap-3 overflow-x-auto whitespace-nowrap">
-            <span className="font-medium text-[#202020] text-[12px] shrink-0">SOCIAL:</span>
+            <span className="font-medium text-[#202020] text-[12px] shrink-0 dark:text-[#e3e3e3]">SOCIAL:</span>
             <div className="flex shrink-0 items-center gap-3">
               {socialLinks.map((link, index) => (
                 <a
@@ -680,7 +746,7 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium text-[#202020] text-[12px] tracking-[0] leading-[normal] hover:underline cursor-pointer"
+                  className="font-medium text-[#202020] text-[12px] tracking-[0] leading-[normal] hover:underline cursor-pointer dark:text-[#e3e3e3]"
                 >
                   {link.name}
                 </a>
@@ -688,9 +754,9 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
             </div>
           </div>
 
-          {/* Logo and case navigation */}
-          <div className="flex min-h-[86px] items-center justify-center sm:min-h-[104px]">
-            <CaseFooterNav previous={caseNav?.previous} next={caseNav?.next} />
+          {/* Logo */}
+          <div className="flex justify-center">
+            <img src="/logo-case-footer.svg" alt="Logo Case Footer" className="w-[112px] h-auto dark:invert sm:w-[200px]" />
           </div>
         </div>
       </section>
@@ -703,6 +769,7 @@ export default function WorkPageClient({ initialProject, dataSource, caseNav }: 
         caseNav={{
           projectTitle: caseProject.projectTitle,
           hasDrafts,
+          hasShowreel,
           onScrollTo: scrollToSection,
           activeSection,
         }}

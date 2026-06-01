@@ -9,6 +9,7 @@ export interface CaseProject {
   projectMedia: string[]
   draftProcess: string[]
   addMedia: string[]
+  showreel?: string
   publish: boolean
   link: string
   slug: string
@@ -268,6 +269,7 @@ async function getCaseProjectsInternal<T extends CaseProject | CaseProjectSummar
             projectMedia: extractFilesFromProperty(properties.projectMedia?.files || []),
             draftProcess: extractFilesFromProperty(properties.draftProcess?.files || []),
             addMedia: extractFilesFromProperty(properties.addMedia?.files || []),
+            showreel: properties.showreel?.url || "",
             link: properties.link?.url || "",
           }
 

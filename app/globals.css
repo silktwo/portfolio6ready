@@ -2,6 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 9%;
+  --border: 0 0% 88%;
+  --input: 0 0% 88%;
+  --ring: 0 0% 9%;
+  --primary: 0 0% 9%;
+  --primary-foreground: 0 0% 96%;
+  --secondary: 0 0% 94%;
+  --secondary-foreground: 0 0% 9%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --muted: 0 0% 94%;
+  --muted-foreground: 0 0% 45%;
+  --accent: 0 0% 94%;
+  --accent-foreground: 0 0% 9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 9%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 0 0% 3%;
+  --foreground: 0 0% 90%;
+  --border: 0 0% 18%;
+  --input: 0 0% 18%;
+  --ring: 0 0% 82%;
+  --primary: 0 0% 90%;
+  --primary-foreground: 0 0% 5%;
+  --secondary: 0 0% 12%;
+  --secondary-foreground: 0 0% 90%;
+  --destructive: 0 62% 40%;
+  --destructive-foreground: 0 0% 98%;
+  --muted: 0 0% 12%;
+  --muted-foreground: 0 0% 62%;
+  --accent: 0 0% 14%;
+  --accent-foreground: 0 0% 90%;
+  --popover: 0 0% 5%;
+  --popover-foreground: 0 0% 90%;
+  --card: 0 0% 5%;
+  --card-foreground: 0 0% 90%;
+}
+
 /* PP Neue Montreal Font Family */
 @font-face {
   font-family: "PP Neue Montreal";
@@ -68,6 +113,14 @@
 }
 
 @font-face {
+  font-family: "Lezo";
+  src: url("/fonts/Lezo_v4.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: "PP Neue Montreal";
   src: url("/fonts/PPNeueMontreal-BoldItalic.woff2") format("woff2");
   font-weight: 700;
@@ -82,5 +135,29 @@
   body {
     @apply bg-background text-foreground;
     font-family: "PP Neue Montreal", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+}
+
+@layer utilities {
+  .dark body {
+    background: #080808;
+    color: #e3e3e3;
+  }
+
+  .dark .bg-white {
+    background-color: #080808 !important;
+  }
+
+  .dark .text-black,
+  .dark .text-\[\#202020\] {
+    color: #e3e3e3 !important;
+  }
+
+  .dark .text-\[\#939393\] {
+    color: #8f8f8f !important;
+  }
+
+  .dark .border-\[\#d8d8d8\] {
+    border-color: #242424 !important;
   }
 }

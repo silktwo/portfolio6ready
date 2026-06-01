@@ -25,7 +25,7 @@ export default function Footer({ className = "", showCaseLogo = false }: FooterP
                 alt="Dmytro Kifuliak Logo"
                 width={59}
                 height={30}
-                className="w-full h-full"
+                className="w-full h-full dark:invert"
                 onError={(e) => {
                   // Fallback if image fails to load
                   const target = e.target as HTMLImageElement
@@ -33,7 +33,7 @@ export default function Footer({ className = "", showCaseLogo = false }: FooterP
                 }}
               />
             </div>
-            <span className="text-[12px] font-medium text-black">Dmytro Kifuliak. © 2025</span>
+            <span className="text-[12px] font-medium text-black dark:text-[#e3e3e3]">Dmytro Kifuliak. © 2026</span>
           </div>
         </div>
 
@@ -45,7 +45,7 @@ export default function Footer({ className = "", showCaseLogo = false }: FooterP
                 alt="Case Logo"
                 width={307}
                 height={159}
-                className="w-full h-full"
+                className="w-full h-full dark:invert"
                 onError={(e) => {
                   // Fallback if image fails to load
                   const target = e.target as HTMLImageElement
@@ -57,7 +57,7 @@ export default function Footer({ className = "", showCaseLogo = false }: FooterP
         )}
 
         <div className="flex items-center gap-2">
-          <span className="text-[12px] font-medium text-black">SOCIAL:</span>
+          <span className="text-[12px] font-medium text-black dark:text-[#e3e3e3]">SOCIAL:</span>
           <div className="flex items-center gap-1.5 flex-wrap">
             {socialLinks.map((link, index) => (
               <a
@@ -65,7 +65,7 @@ export default function Footer({ className = "", showCaseLogo = false }: FooterP
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[12px] font-medium text-black hover:underline"
+                className="text-[12px] font-medium text-black hover:underline dark:text-[#e3e3e3]"
               >
                 {link.name}
               </a>

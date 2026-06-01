@@ -31,20 +31,26 @@ export default async function WorkPage() {
         {projects.map((project) => (
           <Link key={project.id} href={`/work/${project.slug}`}>
             <div className="group cursor-pointer">
-              <div className="aspect-[4/3] bg-gray-100 overflow-hidden mb-4 relative rounded-[6px]">
+              <div className={`aspect-[4/3] overflow-hidden mb-4 relative rounded-[6px] ${project.comingSoon ? "isolate bg-[#8d8a82]" : "bg-gray-100"}`}>
                 <img
                   src={project.thumbnail || project.introImage || "/placeholder.svg"}
                   alt={project.projectTitle}
-                  className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 rounded-[6px] ${
-                    project.comingSoon ? 'blur-sm' : ''
+                  className={`h-full w-full object-cover rounded-[6px] ${
+                    project.comingSoon
+                      ? "absolute inset-0 transform-gpu scale-125 blur-[20px] opacity-90"
+                      : "group-hover:scale-105 transition-transform duration-300"
                   }`}
                 />
                 {project.comingSoon && (
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <Badge className="bg-black text-white rounded-[10px] px-4 py-1 font-medium text-[10px]">
-                      COMING SOON
-                    </Badge>
-                  </div>
+                  <>
+                    <div className="absolute inset-0 bg-[rgba(14,14,14,0.16)]" />
+                    <div className="absolute inset-0 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]" />
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                      <Badge className="bg-black text-white rounded-[10px] px-4 py-1 font-medium text-[10px]">
+                        COMING SOON
+                      </Badge>
+                    </div>
+                  </>
                 )}
               </div>
               <div className="space-y-2">

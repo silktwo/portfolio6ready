@@ -38,9 +38,12 @@ export default async function WorkPage() {
                   className={`h-full w-full object-cover rounded-[6px] ${
                     project.comingSoon
                       ? "absolute inset-0 transform-gpu scale-125 blur-[20px] opacity-90"
-                      : "group-hover:scale-105 transition-transform duration-300"
+                      : ""
                   }`}
                 />
+                {!project.comingSoon && (
+                  <div className="pointer-events-none absolute inset-0 rounded-[6px] bg-white opacity-0 transition-opacity duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-40 dark:bg-black dark:group-hover:opacity-45" />
+                )}
                 {project.comingSoon && (
                   <>
                     <div className="absolute inset-0 bg-[rgba(14,14,14,0.16)]" />

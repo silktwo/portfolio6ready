@@ -11,6 +11,15 @@ export const metadata: Metadata = {
   description:
     "All-in-one designer with 7+ years of experience. Conceives and builds visual systems from start to finish.",
   generator: "Next.js",
+  icons: {
+    icon: [
+      {
+        url: "/favicon.svg",
+        type: "image/svg+xml",
+      },
+    ],
+    shortcut: "/favicon.svg",
+  },
   metadataBase: new URL(
     process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`

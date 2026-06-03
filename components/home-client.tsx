@@ -63,23 +63,28 @@ function ProjectCard({
       </p>
       <div
         className={`relative h-[300px] overflow-hidden rounded-[6px] ${
-          project.comingSoon ? "isolate bg-[#8d8a82]" : "bg-gray-100 transition-transform duration-200 group-hover:scale-[1.02]"
+          project.comingSoon ? "isolate bg-[#8d8a82]" : "bg-gray-100 dark:bg-[#181818]"
         }`}
       >
         <img
           src={thumbnailImage}
           alt={project.projectTitle}
+          data-preload="true"
+          data-preview-image="true"
           className={
             project.comingSoon
               ? "absolute inset-0 h-full w-full object-cover transform-gpu scale-125 blur-[20px] opacity-90"
               : "h-full w-full object-cover rounded-[6px]"
           }
           onError={handleImageError}
-          // Eager + no decoding delay for above-the-fold cards
-          loading={priority ? "eager" : "lazy"}
+          // Homepage thumbnails are the first impression, so do not defer them.
+          loading="eager"
           decoding="async"
-          fetchPriority={priority ? "high" : "low"}
+          fetchPriority={priority ? "high" : "auto"}
         />
+        {!project.comingSoon && (
+          <div className="pointer-events-none absolute inset-0 rounded-[6px] bg-white opacity-0 transition-opacity duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-40 dark:bg-black dark:group-hover:opacity-45" />
+        )}
         {project.comingSoon && (
           <>
             <div className="absolute inset-0 bg-[rgba(14,14,14,0.16)]" />

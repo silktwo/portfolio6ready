@@ -1,0 +1,10 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    path { fill: #080808; }
+    @media (prefers-color-scheme: dark) {
+      path { fill: #eaeaea; }
+    }
+  </style>
+  <path d="M32 9H27.0917L18.1146 15.0966V9H14.8854V17.7525H1V20.7706H13.1417L8.42708 24H13.3354L18.1146 20.7404V18.507L21.9896 15.8813L22.3125 16.1529L27.5115 20.7706H32L24.3792 14.2213L32 9Z"/>
+  <path d="M7.26457 13.7988L14.8854 9H9.97707L1 14.6137V17.7525L7.26457 13.7988Z"/>
+</svg>

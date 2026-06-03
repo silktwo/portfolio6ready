@@ -9,6 +9,7 @@ import Footer from "@/components/footer"
 import { formatDate, type BlogPost } from "@/lib/notion"
 import { X, ChevronLeft, ChevronRight } from "lucide-react"
 import { proxyNotionImage } from "@/lib/notion-image"
+import { FadeInImage } from "@/components/fade-in-image"
 
 // Image Lightbox Component
 function ImageLightbox({
@@ -122,10 +123,10 @@ export default function JournalClient({ initialPosts }: { initialPosts: BlogPost
         if (images.length === 1) {
             return (
                 <div className="w-full cursor-pointer" onClick={() => openLightbox(images, 0)}>
-                    <img
+                    <FadeInImage
                         src={proxyNotionImage(images[0].url) || "/placeholder.svg"}
                         alt={entry.description || "Journal image"}
-                        className="w-full h-auto object-contain rounded-[6px] hover:opacity-90 transition-opacity"
+                        className="w-full h-auto object-contain rounded-[6px] hover:opacity-90"
                         loading="lazy"
                         decoding="async"
                     />
@@ -136,10 +137,10 @@ export default function JournalClient({ initialPosts }: { initialPosts: BlogPost
                 <div className="grid grid-cols-2 gap-2">
                     {images.slice(0, 4).map((image, imgIndex) => (
                         <div key={imgIndex} className="cursor-pointer" onClick={() => openLightbox(images, imgIndex)}>
-                            <img
+                            <FadeInImage
                                 src={proxyNotionImage(image.url) || "/placeholder.svg"}
                                 alt={`Journal image ${imgIndex + 1}`}
-                                className="w-full h-auto object-cover rounded-[6px] hover:opacity-90 transition-opacity aspect-square"
+                                className="w-full h-auto object-cover rounded-[6px] hover:opacity-90 aspect-square"
                                 loading="lazy"
                                 decoding="async"
                             />

@@ -7,6 +7,7 @@ import BackToTop from "@/components/back-to-top"
 import Footer from "@/components/footer"
 import PortfolioState from "@/components/portfolio-state"
 import { type PersonalProject } from "@/lib/notion-projects-server"
+import { FadeInImage } from "@/components/fade-in-image"
 import { X } from "lucide-react"
 
 // Image Modal Component with full-screen display
@@ -122,10 +123,12 @@ function ProjectCard({
                 className="relative bg-gray-100 overflow-hidden rounded-[6px] mb-2 cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={onImageClick}
             >
-                <img
+                <FadeInImage
                     src={imageError ? "/placeholder.svg?height=300&width=300" : project.image}
                     alt={project.title}
                     className="w-full h-auto object-contain rounded-[6px]"
+                    loading="lazy"
+                    decoding="async"
                     onError={() => setImageError(true)}
                 />
             </div>

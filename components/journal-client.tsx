@@ -1,17 +1,15 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Navigation from "@/components/navigation"
 import MobileNav from "@/components/mobile-nav"
 import BackToTop from "@/components/back-to-top"
 import Footer from "@/components/footer"
 import { formatDate, type BlogPost } from "@/lib/notion"
-import { X, ChevronLeft, ChevronRight } from "lucide-react"
-import { proxyNotionImage } from "@/lib/notion-image"
 import { FadeInImage } from "@/components/fade-in-image"
 
-// Image Lightbox Component
+// Image Lightbox Component — matches the case page / personal projects viewer
 function ImageLightbox({
     images,
     currentIndex,
@@ -27,60 +25,82 @@ function ImageLightbox({
     onNext: () => void
     onPrev: () => void
 }) {
-    if (!isOpen) return null
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                onClose()
+            } else if (e.key === "ArrowLeft") {
+                onPrev()
+            } else if (e.key === "ArrowRight") {
+                onNext()
+            }
+        }
+
+        if (isOpen) {
+            document.addEventListener("keydown", handleEscape)
+            document.body.style.overflow = "hidden"
+        }
+
+        return () => {
+            document.removeEventListener("keydown", handleEscape)
+            document.body.style.overflow = "unset"
+        }
+    }, [isOpen, onClose, onNext, onPrev])
+
+    if (!isOpen || !images[currentIndex]) return null
+
+    const currentImage = images[currentIndex]
 
     return (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black z-50 flex items-center justify-center" onClick={onClose}>
             {/* Close button */}
             <button
                 onClick={onClose}
-                className="absolute top-4 right-4 z-60 p-2 text-white hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
+                className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10 text-3xl font-light"
             >
-                <X className="w-6 h-6" />
+                ×
             </button>
 
-            {/* Navigation buttons */}
+            {/* Previous button */}
             {images.length > 1 && (
-                <>
-                    <button
-                        onClick={onPrev}
-                        className="absolute left-4 z-60 p-2 text-white hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
-                    >
-                        <ChevronLeft className="w-6 h-6" />
-                    </button>
-                    <button
-                        onClick={onNext}
-                        className="absolute right-4 z-60 p-2 text-white hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
-                    >
-                        <ChevronRight className="w-6 h-6" />
-                    </button>
-                </>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation()
+                        onPrev()
+                    }}
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-10 text-2xl bg-black bg-opacity-30 hover:bg-opacity-50 rounded-full w-12 h-12 flex items-center justify-center"
+                >
+                    ‹
+                </button>
             )}
 
-            {/* Image - Responsive scaling */}
-            <div className="w-full h-full flex items-center justify-center">
-                <img
-                    src={images[currentIndex]?.url || "/placeholder.svg"}
-                    alt={images[currentIndex]?.name || "Image"}
-                    className="max-w-full max-h-full object-contain"
-                    style={{
-                        width: "auto",
-                        height: "auto",
-                        maxWidth: "100%",
-                        maxHeight: "100%",
+            {/* Next button */}
+            {images.length > 1 && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation()
+                        onNext()
                     }}
-                />
-            </div>
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors z-10 text-2xl bg-black bg-opacity-30 hover:bg-opacity-50 rounded-full w-12 h-12 flex items-center justify-center"
+                >
+                    ›
+                </button>
+            )}
 
             {/* Image counter */}
             {images.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm">
+                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-white text-sm bg-black bg-opacity-50 px-3 py-1 rounded-full">
                     {currentIndex + 1} / {images.length}
                 </div>
             )}
 
-            {/* Background overlay */}
-            <div className="absolute inset-0 -z-10" onClick={onClose} />
+            <img
+                src={currentImage.url || "/placeholder.svg"}
+                alt={currentImage.name}
+                className="max-w-[100vw] max-h-[100vh] object-contain block"
+                style={{ margin: 0, padding: 0 }}
+                onClick={(e) => e.stopPropagation()}
+            />
         </div>
     )
 }
@@ -124,11 +144,11 @@ export default function JournalClient({ initialPosts }: { initialPosts: BlogPost
             return (
                 <div className="w-full cursor-pointer" onClick={() => openLightbox(images, 0)}>
                     <FadeInImage
-                        src={proxyNotionImage(images[0].url) || "/placeholder.svg"}
+                        src={images[0].url || "/placeholder.svg"}
                         alt={entry.description || "Journal image"}
                         className="w-full h-auto object-contain rounded-[6px] hover:opacity-90"
+                        sizes="(min-width: 600px) 600px, 100vw"
                         loading="lazy"
-                        decoding="async"
                     />
                 </div>
             )
@@ -138,11 +158,11 @@ export default function JournalClient({ initialPosts }: { initialPosts: BlogPost
                     {images.slice(0, 4).map((image, imgIndex) => (
                         <div key={imgIndex} className="cursor-pointer" onClick={() => openLightbox(images, imgIndex)}>
                             <FadeInImage
-                                src={proxyNotionImage(image.url) || "/placeholder.svg"}
+                                src={image.url || "/placeholder.svg"}
                                 alt={`Journal image ${imgIndex + 1}`}
                                 className="w-full h-auto object-cover rounded-[6px] hover:opacity-90 aspect-square"
+                                sizes="(min-width: 600px) 300px, 50vw"
                                 loading="lazy"
-                                decoding="async"
                             />
                         </div>
                     ))}

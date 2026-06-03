@@ -37,8 +37,8 @@ function ProjectCard({ project, className = "" }: { project: CommercialProject; 
                     src={imageError ? "/placeholder.svg?height=300&width=400" : project.image}
                     alt={project.title}
                     className="w-full h-auto object-contain rounded-[6px]"
+                    sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
                     loading="lazy"
-                    decoding="async"
                     onError={handleImageError}
                 />
                 <div className="pointer-events-none absolute inset-0 rounded-[6px] bg-white opacity-0 transition-opacity duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-40 dark:bg-black dark:group-hover:opacity-45" />

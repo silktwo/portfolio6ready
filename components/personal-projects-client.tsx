@@ -127,8 +127,8 @@ function ProjectCard({
                     src={imageError ? "/placeholder.svg?height=300&width=300" : project.image}
                     alt={project.title}
                     className="w-full h-auto object-contain rounded-[6px]"
+                    sizes="(min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw"
                     loading="lazy"
-                    decoding="async"
                     onError={() => setImageError(true)}
                 />
             </div>

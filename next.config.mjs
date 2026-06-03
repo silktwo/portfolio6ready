@@ -2,23 +2,13 @@
 const nextConfig = {
   // ─── Image Optimisation ───────────────────────────────────────────────────
   images: {
-    // Accept Notion S3 images for the Next.js built-in optimizer
+    // Allow the optimizer to fetch any https image source. Images come from
+    // Notion S3 plus assorted external hosts (e.g. read.cv CloudFront), so a
+    // fixed allowlist would crash on render for unconfigured hosts.
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "prod-files-secure.s3.us-west-2.amazonaws.com",
-      },
-      {
-        protocol: "https",
-        hostname: "s3.us-west-2.amazonaws.com",
-      },
-      {
-        protocol: "https",
-        hostname: "notion.so",
-      },
-      {
-        protocol: "https",
-        hostname: "notion-static.com",
+        hostname: "**",
       },
     ],
     // Serve WebP/AVIF when the browser supports it

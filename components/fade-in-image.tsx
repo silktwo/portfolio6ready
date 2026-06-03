@@ -3,10 +3,13 @@
 import { useEffect, useRef, useState, type ImgHTMLAttributes } from "react"
 
 /**
- * An <img> that reveals with a gentle rise + fade the first time it scrolls into
- * view — the same "cards animate in as you reach them" feel as kimera. Driven by
- * an IntersectionObserver so the motion plays consistently regardless of whether
- * the image is cached (instant) or still loading.
+ * An <img> that reveals with a gentle rise + fade once it has loaded — the same
+ * "cards reveal as they appear" feel as kimera. Combined with loading="lazy",
+ * off-screen images load (and so reveal) only as you scroll near them.
+ *
+ * Revealing on load (rather than via an IntersectionObserver on the <img>) is
+ * deliberate: a lazy image has zero height until it loads, which makes observing
+ * it unreliable and can leave images stuck invisible.
  */
 export function FadeInImage({
   className = "",
@@ -14,48 +17,36 @@ export function FadeInImage({
   onError,
   ...props
 }: ImgHTMLAttributes<HTMLImageElement>) {
-  const [loaded, setLoaded] = useState(false)
-  const [inView, setInView] = useState(false)
+  const [revealed, setRevealed] = useState(false)
   const ref = useRef<HTMLImageElement>(null)
+  const frames = useRef<number[]>([])
+
+  // Defer two frames so the hidden initial state paints first — this guarantees
+  // the rise + fade transition actually runs, even for instantly-cached images.
+  const reveal = () => {
+    const a = requestAnimationFrame(() => {
+      const b = requestAnimationFrame(() => setRevealed(true))
+      frames.current.push(b)
+    })
+    frames.current.push(a)
+  }
 
   useEffect(() => {
-    const node = ref.current
-    if (!node) return
-
     // A cached image can already be complete before onLoad ever fires.
-    if (node.complete) setLoaded(true)
-
-    if (typeof IntersectionObserver === "undefined") {
-      setInView(true)
-      return
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setInView(true)
-          observer.disconnect()
-        }
-      },
-      { rootMargin: "0px 0px -10% 0px" },
-    )
-    observer.observe(node)
-
-    return () => observer.disconnect()
+    if (ref.current?.complete) reveal()
+    return () => frames.current.forEach(cancelAnimationFrame)
   }, [])
-
-  const revealed = inView && loaded
 
   return (
     <img
       ref={ref}
       {...props}
       onLoad={(event) => {
-        setLoaded(true)
+        reveal()
         onLoad?.(event)
       }}
       onError={(event) => {
-        setLoaded(true)
+        reveal()
         onError?.(event)
       }}
       className={`${className} transition-[opacity,transform] duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${

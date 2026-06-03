@@ -9,6 +9,7 @@ import Footer from "@/components/footer"
 import { Badge } from "@/components/ui/badge"
 import { X } from "lucide-react"
 import { type CommercialProject } from "@/lib/notion-commercial-server"
+import { FadeInImage } from "@/components/fade-in-image"
 
 // Project Card Component
 function ProjectCard({ project, className = "" }: { project: CommercialProject; className?: string }) {
@@ -32,10 +33,12 @@ function ProjectCard({ project, className = "" }: { project: CommercialProject; 
                 )}
             </div>
             <div className="relative bg-gray-100 overflow-hidden rounded-[6px] dark:bg-[#181818]">
-                <img
+                <FadeInImage
                     src={imageError ? "/placeholder.svg?height=300&width=400" : project.image}
                     alt={project.title}
                     className="w-full h-auto object-contain rounded-[6px]"
+                    loading="lazy"
+                    decoding="async"
                     onError={handleImageError}
                 />
                 <div className="pointer-events-none absolute inset-0 rounded-[6px] bg-white opacity-0 transition-opacity duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-40 dark:bg-black dark:group-hover:opacity-45" />

@@ -67,9 +67,9 @@ const nextConfig = {
           },
         ],
       },
-      // Image proxy endpoint — long CDN cache
+      // Image proxy endpoints — long CDN cache
       {
-        source: "/api/image-proxy",
+        source: "/api/:path(image-proxy|notion-file)",
         headers: [
           {
             key: "Cache-Control",

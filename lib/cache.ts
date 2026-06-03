@@ -3,6 +3,8 @@ import { unstable_cache } from 'next/cache'
 import { getActiveAdapters } from './cms-adapter'
 import { DEFAULT_REVALIDATE, GLOBAL_CMS_TAG } from '../content.config'
 
+const CMS_CACHE_VERSION = 'stable-notion-file-urls-v1'
+
 export async function getCachedData<T>(
   collection: string,
   slug?: string,
@@ -34,7 +36,7 @@ export async function getCachedData<T>(
         return null
       }
     },
-    [cacheKey],
+    [CMS_CACHE_VERSION, cacheKey],
     {
       revalidate,
       tags

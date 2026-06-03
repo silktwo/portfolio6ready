@@ -7,7 +7,7 @@ import InfoSection from "@/components/info-section"
 import BackToTop from "@/components/back-to-top"
 import Footer from "@/components/footer"
 import { Badge } from "@/components/ui/badge"
-import { X, ExternalLink } from "lucide-react"
+import { X } from "lucide-react"
 import { type CommercialProject } from "@/lib/notion-commercial-server"
 
 // Project Card Component
@@ -31,18 +31,14 @@ function ProjectCard({ project, className = "" }: { project: CommercialProject; 
                     <p className="text-gray-500 text-[12px] leading-[14px] uppercase">, {project.categories.join(", ")}</p>
                 )}
             </div>
-            <div className="relative bg-gray-100 overflow-hidden transition-transform duration-200 group-hover:scale-[1.02] rounded-[6px]">
+            <div className="relative bg-gray-100 overflow-hidden rounded-[6px] dark:bg-[#181818]">
                 <img
                     src={imageError ? "/placeholder.svg?height=300&width=400" : project.image}
                     alt={project.title}
                     className="w-full h-auto object-contain rounded-[6px]"
                     onError={handleImageError}
                 />
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Badge className="bg-black text-white rounded-full p-1">
-                        <ExternalLink className="w-3 h-3" />
-                    </Badge>
-                </div>
+                <div className="pointer-events-none absolute inset-0 rounded-[6px] bg-white opacity-0 transition-opacity duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-40 dark:bg-black dark:group-hover:opacity-45" />
             </div>
         </a>
     )

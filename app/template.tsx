@@ -1,7 +1,5 @@
+import { PageLoadMask } from "@/components/page-load-mask"
+
 export default function Template({ children }: { children: React.ReactNode }) {
-    return (
-        <div className="animate-in fade-in duration-700">
-            {children}
-        </div>
-    )
+  return <PageLoadMask>{children}</PageLoadMask>
 }

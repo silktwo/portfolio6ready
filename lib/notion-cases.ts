@@ -39,6 +39,8 @@ type CaseProjectsResult<T> = {
   }
 }
 
+type CasePreviewFileProperty = "introImage" | "thumbnail"
+
 function cleanDatabaseId(id: string): string {
   return id.replace(/-/g, "")
 }
@@ -46,6 +48,16 @@ function cleanDatabaseId(id: string): string {
 function extractTextFromRichText(richText: any[]): string {
   if (!richText || !Array.isArray(richText)) return ""
   return richText.map((text) => text.plain_text || "").join("")
+}
+
+function notionFileUrl(pageId: string, property: CasePreviewFileProperty, index = 0): string {
+  const params = new URLSearchParams({
+    pageId,
+    property,
+    index: String(index),
+  })
+
+  return `/api/notion-file?${params.toString()}`
 }
 
 function extractFilesFromProperty(files: any[]): string[] {
@@ -57,6 +69,17 @@ function extractFilesFromProperty(files: any[]): string[] {
       return ""
     })
     .filter(Boolean)
+}
+
+function extractPreviewFileFromProperty(files: any[], pageId: string, property: CasePreviewFileProperty): string {
+  if (!files || !Array.isArray(files) || !files[0]) return ""
+
+  const file = files[0]
+
+  if (file.type === "file") return notionFileUrl(pageId, property)
+  if (file.type === "external") return file.external?.url || ""
+
+  return ""
 }
 
 function extractMultiSelectFromProperty(multiSelect: any[]): string[] {
@@ -223,8 +246,13 @@ async function getCaseProjectsInternal<T extends CaseProject | CaseProjectSummar
         // Extract required fields
         const projectTitle = extractTextFromRichText(properties.projectTitle?.title || [])
         const categoryTags = extractMultiSelectFromProperty(properties.categoryTags?.multi_select || [])
-        const introImage = extractFilesFromProperty(properties.introImage?.files || [])[0] || ""
-        const thumbnail = extractFilesFromProperty(properties.thumbnail?.files || [])[0] || introImage // Use introImage as fallback
+        const rawIntroImage = extractFilesFromProperty(properties.introImage?.files || [])[0] || ""
+        const rawThumbnail = extractFilesFromProperty(properties.thumbnail?.files || [])[0] || rawIntroImage
+        const previewIntroImage = extractPreviewFileFromProperty(properties.introImage?.files || [], page.id, "introImage")
+        const previewThumbnail =
+          extractPreviewFileFromProperty(properties.thumbnail?.files || [], page.id, "thumbnail") ||
+          previewIntroImage ||
+          rawThumbnail
         const publish = properties.publish?.checkbox || false
         const comingSoon = properties.comingSoon?.checkbox || false
 
@@ -237,7 +265,7 @@ async function getCaseProjectsInternal<T extends CaseProject | CaseProjectSummar
           continue
         }
 
-        if (!introImage && !thumbnail) {
+        if (!rawIntroImage && !rawThumbnail) {
           metadata.warnings.push(`Skipping project "${projectTitle}": Missing introImage and thumbnail`)
           continue
         }
@@ -252,8 +280,8 @@ async function getCaseProjectsInternal<T extends CaseProject | CaseProjectSummar
           id: page.id,
           projectTitle,
           categoryTags,
-          introImage,
-          thumbnail,
+          introImage: rawIntroImage,
+          thumbnail: previewThumbnail,
           publish,
           slug,
           comingSoon,
@@ -264,6 +292,8 @@ async function getCaseProjectsInternal<T extends CaseProject | CaseProjectSummar
         } else {
           const project: CaseProject = {
             ...summary,
+            introImage: rawIntroImage,
+            thumbnail: rawThumbnail,
             description: extractTextFromRichText(properties.description?.rich_text || []),
             team: extractTextFromRichText(properties.team?.rich_text || []),
             projectMedia: extractFilesFromProperty(properties.projectMedia?.files || []),

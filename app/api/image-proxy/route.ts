@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
       console.error(
         `[image-proxy] upstream ${upstream.status} for ${imageUrl}`
       )
-      return NextResponse.redirect("/placeholder.svg", { status: 302 })
+      return NextResponse.redirect(new URL("/placeholder.svg", request.url), { status: 302 })
     }
 
     const contentType =
@@ -74,6 +74,6 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error("[image-proxy] fetch error:", error)
-    return NextResponse.redirect("/placeholder.svg", { status: 302 })
+    return NextResponse.redirect(new URL("/placeholder.svg", request.url), { status: 302 })
   }
 }

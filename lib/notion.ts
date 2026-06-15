@@ -11,6 +11,7 @@ export interface BlogPost {
     name: string
     url: string
     type: "image" | "file"
+    rawIndex: number
   }>
   content?: string
 }
@@ -74,23 +75,25 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
           : page.id
 
       // Extract attachments
-      const attachments: Array<{ name: string; url: string; type: "image" | "file" }> = []
+      const attachments: Array<{ name: string; url: string; type: "image" | "file"; rawIndex: number }> = []
       const attachmentsField = properties[NOTION_CONFIG.BLOG_POSTS.FIELDS.ATTACHMENTS]
 
       if (attachmentsField?.files && Array.isArray(attachmentsField.files)) {
-        attachmentsField.files.forEach((file: any) => {
+        attachmentsField.files.forEach((file: any, rawIndex: number) => {
           try {
             if (file.type === "file" && file.file?.url) {
               attachments.push({
                 name: file.name || "Attachment",
                 url: file.file.url,
                 type: file.name?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? "image" : "file",
+                rawIndex,
               })
             } else if (file.type === "external" && file.external?.url) {
               attachments.push({
                 name: file.name || "External File",
                 url: file.external.url,
                 type: file.name?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? "image" : "file",
+                rawIndex,
               })
             }
           } catch (fileError) {

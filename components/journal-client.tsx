@@ -8,7 +8,7 @@ import BackToTop from "@/components/back-to-top"
 import Footer from "@/components/footer"
 import { formatDate, type BlogPost } from "@/lib/notion"
 import { FadeInImage } from "@/components/fade-in-image"
-import { proxyNotionImage } from "@/lib/notion-image"
+import { notionFileUrl } from "@/lib/notion-image"
 
 // Image Lightbox Component — matches the case page / personal projects viewer
 function ImageLightbox({
@@ -141,11 +141,17 @@ export default function JournalClient({ initialPosts }: { initialPosts: BlogPost
             return null
         }
 
+        // Stable, CDN-cacheable URLs for both the grid and the lightbox.
+        const lightboxImages = images.map((image) => ({
+            url: notionFileUrl(entry.id, "attachments", image.rawIndex),
+            name: image.name,
+        }))
+
         if (images.length === 1) {
             return (
-                <div className="w-full cursor-pointer" onClick={() => openLightbox(images, 0)}>
+                <div className="w-full cursor-pointer" onClick={() => openLightbox(lightboxImages, 0)}>
                     <FadeInImage
-                        src={proxyNotionImage(images[0].url) || "/placeholder.svg"}
+                        src={lightboxImages[0].url}
                         alt={entry.description || "Journal image"}
                         className="w-full h-auto object-contain rounded-[6px] hover:opacity-90"
                         priority={priority}
@@ -156,9 +162,9 @@ export default function JournalClient({ initialPosts }: { initialPosts: BlogPost
             return (
                 <div className="grid grid-cols-2 gap-2">
                     {images.slice(0, 4).map((image, imgIndex) => (
-                        <div key={imgIndex} className="cursor-pointer" onClick={() => openLightbox(images, imgIndex)}>
+                        <div key={imgIndex} className="cursor-pointer" onClick={() => openLightbox(lightboxImages, imgIndex)}>
                             <FadeInImage
-                                src={proxyNotionImage(image.url) || "/placeholder.svg"}
+                                src={lightboxImages[imgIndex].url}
                                 alt={`Journal image ${imgIndex + 1}`}
                                 className="w-full h-auto object-cover rounded-[6px] hover:opacity-90 aspect-square"
                                 priority={priority}

@@ -8,7 +8,7 @@ import Footer from "@/components/footer"
 import PortfolioState from "@/components/portfolio-state"
 import { type PersonalProject } from "@/lib/notion-projects-server"
 import { FadeInImage } from "@/components/fade-in-image"
-import { proxyNotionImage } from "@/lib/notion-image"
+import { notionFileUrl } from "@/lib/notion-image"
 import { X } from "lucide-react"
 
 // Image Modal Component with full-screen display
@@ -127,7 +127,7 @@ function ProjectCard({
                 onClick={onImageClick}
             >
                 <FadeInImage
-                    src={imageError ? "/placeholder.svg" : proxyNotionImage(project.image)}
+                    src={imageError ? "/placeholder.svg" : notionFileUrl(project.id, "workFile", 0)}
                     alt={project.title}
                     className="w-full h-auto object-contain rounded-[6px]"
                     priority={priority}

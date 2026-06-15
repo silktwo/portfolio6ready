@@ -8,6 +8,7 @@ import BackToTop from "@/components/back-to-top"
 import Footer from "@/components/footer"
 import { formatDate, type BlogPost } from "@/lib/notion"
 import { FadeInImage } from "@/components/fade-in-image"
+import { proxyNotionImage } from "@/lib/notion-image"
 
 // Image Lightbox Component — matches the case page / personal projects viewer
 function ImageLightbox({
@@ -133,7 +134,7 @@ export default function JournalClient({ initialPosts }: { initialPosts: BlogPost
         setCurrentImageIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length)
     }
 
-    const renderImageLayout = (entry: BlogPost) => {
+    const renderImageLayout = (entry: BlogPost, priority = false) => {
         const images = entry.attachments.filter((att) => att.type === "image")
 
         if (images.length === 0) {
@@ -144,11 +145,10 @@ export default function JournalClient({ initialPosts }: { initialPosts: BlogPost
             return (
                 <div className="w-full cursor-pointer" onClick={() => openLightbox(images, 0)}>
                     <FadeInImage
-                        src={images[0].url || "/placeholder.svg"}
+                        src={proxyNotionImage(images[0].url) || "/placeholder.svg"}
                         alt={entry.description || "Journal image"}
                         className="w-full h-auto object-contain rounded-[6px] hover:opacity-90"
-                        sizes="(min-width: 600px) 600px, 100vw"
-                        loading="lazy"
+                        priority={priority}
                     />
                 </div>
             )
@@ -158,11 +158,10 @@ export default function JournalClient({ initialPosts }: { initialPosts: BlogPost
                     {images.slice(0, 4).map((image, imgIndex) => (
                         <div key={imgIndex} className="cursor-pointer" onClick={() => openLightbox(images, imgIndex)}>
                             <FadeInImage
-                                src={image.url || "/placeholder.svg"}
+                                src={proxyNotionImage(image.url) || "/placeholder.svg"}
                                 alt={`Journal image ${imgIndex + 1}`}
                                 className="w-full h-auto object-cover rounded-[6px] hover:opacity-90 aspect-square"
-                                sizes="(min-width: 600px) 300px, 50vw"
-                                loading="lazy"
+                                priority={priority}
                             />
                         </div>
                     ))}
@@ -202,7 +201,7 @@ export default function JournalClient({ initialPosts }: { initialPosts: BlogPost
                             </p>
                         </div>
                     ) : (
-                        blogPosts.map((entry) => (
+                        blogPosts.map((entry, postIndex) => (
                             <div key={entry.id} className="flex flex-col items-start gap-[19px] relative self-stretch w-full">
                                 <div className="flex items-start gap-[20px] sm:gap-[40px] relative self-stretch w-full">
                                     <div className="relative w-fit mt-[-1px] font-medium text-black text-[12px] tracking-[0] leading-[normal] whitespace-nowrap">
@@ -238,7 +237,7 @@ export default function JournalClient({ initialPosts }: { initialPosts: BlogPost
                                     </div>
                                 </div>
 
-                                {renderImageLayout(entry)}
+                                {renderImageLayout(entry, postIndex === 0)}
                             </div>
                         ))
                     )}

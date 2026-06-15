@@ -8,6 +8,7 @@ import Footer from "@/components/footer"
 import PortfolioState from "@/components/portfolio-state"
 import { type PersonalProject } from "@/lib/notion-projects-server"
 import { FadeInImage } from "@/components/fade-in-image"
+import { proxyNotionImage } from "@/lib/notion-image"
 import { X } from "lucide-react"
 
 // Image Modal Component with full-screen display
@@ -111,10 +112,12 @@ function ProjectCard({
     project,
     className = "",
     onImageClick,
+    priority = false,
 }: {
     project: PersonalProject
     className?: string
     onImageClick: () => void
+    priority?: boolean
 }) {
     const [imageError, setImageError] = useState(false)
     return (
@@ -124,11 +127,10 @@ function ProjectCard({
                 onClick={onImageClick}
             >
                 <FadeInImage
-                    src={imageError ? "/placeholder.svg?height=300&width=300" : project.image}
+                    src={imageError ? "/placeholder.svg" : proxyNotionImage(project.image)}
                     alt={project.title}
                     className="w-full h-auto object-contain rounded-[6px]"
-                    sizes="(min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw"
-                    loading="lazy"
+                    priority={priority}
                     onError={() => setImageError(true)}
                 />
             </div>
@@ -210,7 +212,7 @@ export default function PersonalProjectsClient({ initialProjects }: { initialPro
                 <section className="w-full mb-16">
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                         {projects.map((project, index) => (
-                            <ProjectCard key={project.id} project={project} onImageClick={() => openModal(index)} />
+                            <ProjectCard key={project.id} project={project} onImageClick={() => openModal(index)} priority={index < 4} />
                         ))}
                     </div>
                 </section>

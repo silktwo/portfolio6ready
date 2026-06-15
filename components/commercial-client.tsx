@@ -10,9 +10,10 @@ import { Badge } from "@/components/ui/badge"
 import { X } from "lucide-react"
 import { type CommercialProject } from "@/lib/notion-commercial-server"
 import { FadeInImage } from "@/components/fade-in-image"
+import { notionFileUrl } from "@/lib/notion-image"
 
 // Project Card Component
-function ProjectCard({ project, className = "" }: { project: CommercialProject; className?: string }) {
+function ProjectCard({ project, className = "", priority = false }: { project: CommercialProject; className?: string; priority?: boolean }) {
     const [imageError, setImageError] = useState(false)
 
     const handleImageError = () => {
@@ -34,11 +35,10 @@ function ProjectCard({ project, className = "" }: { project: CommercialProject; 
             </div>
             <div className="relative bg-gray-100 overflow-hidden rounded-[6px] dark:bg-[#181818]">
                 <FadeInImage
-                    src={imageError ? "/placeholder.svg?height=300&width=400" : project.image}
+                    src={imageError ? "/placeholder.svg" : notionFileUrl(project.id, "thumbnail", 0)}
                     alt={project.title}
                     className="w-full h-auto object-contain rounded-[6px]"
-                    sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                    loading="lazy"
+                    priority={priority}
                     onError={handleImageError}
                 />
                 <div className="pointer-events-none absolute inset-0 rounded-[6px] bg-white opacity-0 transition-opacity duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-40 dark:bg-black dark:group-hover:opacity-45" />
@@ -60,12 +60,15 @@ function ThreeColumnWorksSection({ activeFilters, projects }: { activeFilters: s
     const column2 = filteredProjects.filter((_, index) => index % 3 === 1)
     const column3 = filteredProjects.filter((_, index) => index % 3 === 2)
 
+    // First visible row → eager-load so the page-load mask can wait for them.
+    const prioritySet = new Set(filteredProjects.slice(0, 3))
+
     return (
         <section className="w-full mt-8 mb-16">
             {/* Mobile: Single column */}
             <div className="grid grid-cols-1 gap-[8px] md:hidden">
                 {filteredProjects.map((project, index) => (
-                    <ProjectCard key={index} project={project} />
+                    <ProjectCard key={index} project={project} priority={prioritySet.has(project)} />
                 ))}
             </div>
 
@@ -75,14 +78,14 @@ function ThreeColumnWorksSection({ activeFilters, projects }: { activeFilters: s
                     {filteredProjects
                         .filter((_, index) => index % 2 === 0)
                         .map((project, index) => (
-                            <ProjectCard key={index} project={project} />
+                            <ProjectCard key={index} project={project} priority={prioritySet.has(project)} />
                         ))}
                 </div>
                 <div className="flex flex-col gap-[8px]">
                     {filteredProjects
                         .filter((_, index) => index % 2 === 1)
                         .map((project, index) => (
-                            <ProjectCard key={index} project={project} />
+                            <ProjectCard key={index} project={project} priority={prioritySet.has(project)} />
                         ))}
                 </div>
             </div>
@@ -91,17 +94,17 @@ function ThreeColumnWorksSection({ activeFilters, projects }: { activeFilters: s
             <div className="hidden lg:grid grid-cols-3 gap-x-[10px] gap-y-[8px]">
                 <div className="flex flex-col gap-[8px]">
                     {column1.map((project, index) => (
-                        <ProjectCard key={index} project={project} />
+                        <ProjectCard key={index} project={project} priority={prioritySet.has(project)} />
                     ))}
                 </div>
                 <div className="flex flex-col gap-[8px]">
                     {column2.map((project, index) => (
-                        <ProjectCard key={index} project={project} />
+                        <ProjectCard key={index} project={project} priority={prioritySet.has(project)} />
                     ))}
                 </div>
                 <div className="flex flex-col gap-[8px]">
                     {column3.map((project, index) => (
-                        <ProjectCard key={index} project={project} />
+                        <ProjectCard key={index} project={project} priority={prioritySet.has(project)} />
                     ))}
                 </div>
             </div>

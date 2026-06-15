@@ -39,3 +39,15 @@ export function proxyNotionImage(url: string | undefined | null): string {
   if (!isNotionImageUrl(url)) return url
   return `/api/image-proxy?url=${encodeURIComponent(url)}`
 }
+
+/**
+ * Builds a STABLE image URL for a Notion file property.
+ *
+ * Unlike a signed S3 URL (which rotates every revalidate and breaks CDN
+ * caching), this URL never changes for a given page/property/index — the
+ * server re-resolves the current signed URL on demand, so the CDN can cache
+ * the image once. The file is streamed as-is (no resizing or re-encoding).
+ */
+export function notionFileUrl(pageId: string, property: string, index = 0): string {
+  return `/api/notion-file?pageId=${encodeURIComponent(pageId)}&property=${encodeURIComponent(property)}&index=${index}`
+}

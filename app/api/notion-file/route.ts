@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server"
+import { unstable_cache } from "next/cache"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -9,6 +10,8 @@ const SWR = 60 * 60 * 24 * 7
 const ALLOWED_PROPERTIES = new Set([
   "introImage",
   "thumbnail",
+  "workFile",
+  "attachments",
 ])
 
 const ALLOWED_NOTION_HOSTNAMES = [
@@ -19,9 +22,54 @@ const ALLOWED_NOTION_HOSTNAMES = [
   "notion-static.com",
 ]
 
-function getToken(): string | undefined {
-  return process.env.CASES_TOKEN || process.env.NOTION_TOKEN || process.env.PERSONAL_TOKEN
+// Each Notion integration only sees the database it was shared with, so a given
+// page may belong to any of them — try every available token until one resolves.
+function getTokens(): string[] {
+  return [
+    process.env.CASES_TOKEN,
+    process.env.NOTION_TOKEN,
+    process.env.COMMERCIAL_TOKEN,
+    process.env.PERSONAL_TOKEN,
+  ].filter((token): token is string => Boolean(token))
 }
+
+// Resolve (and cache for 30 min) a Notion page's properties. The browser URL is
+// stable (pageId+property+index), so the signed S3 URL is re-resolved here while
+// the CDN caches the image response itself — no churn from rotating signatures.
+const getCachedPageProperties = unstable_cache(
+  async (pageId: string): Promise<Record<string, any> | null> => {
+    const tokens = getTokens()
+    if (tokens.length === 0) {
+      console.error("[notion-file] missing Notion token")
+      return null
+    }
+
+    for (const token of tokens) {
+      try {
+        const response = await fetch(`https://api.notion.com/v1/pages/${encodeURIComponent(pageId)}`, {
+          cache: "no-store",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Notion-Version": "2022-06-28",
+          },
+          signal: AbortSignal.timeout(10_000),
+        })
+
+        if (response.ok) {
+          const page = await response.json()
+          return page?.properties ?? null
+        }
+      } catch {
+        // Try the next token.
+      }
+    }
+
+    console.error(`[notion-file] no token could resolve page ${pageId}`)
+    return null
+  },
+  ["notion-file-page"],
+  { revalidate: 1800 },
+)
 
 function isAllowedNotionFile(url: string): boolean {
   try {
@@ -41,29 +89,10 @@ function cacheHeaders(contentType?: string) {
 }
 
 async function getCurrentNotionFileUrl(pageId: string, propertyName: string, index: number): Promise<string | null> {
-  const token = getToken()
+  const properties = await getCachedPageProperties(pageId)
+  if (!properties) return null
 
-  if (!token) {
-    console.error("[notion-file] missing Notion token")
-    return null
-  }
-
-  const notionResponse = await fetch(`https://api.notion.com/v1/pages/${encodeURIComponent(pageId)}`, {
-    cache: "no-store",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Notion-Version": "2022-06-28",
-    },
-    signal: AbortSignal.timeout(10_000),
-  })
-
-  if (!notionResponse.ok) {
-    console.error(`[notion-file] Notion page fetch ${notionResponse.status} for ${pageId}`)
-    return null
-  }
-
-  const page = await notionResponse.json()
-  const files = page?.properties?.[propertyName]?.files
+  const files = properties[propertyName]?.files
   const file = Array.isArray(files) ? files[index] : null
 
   if (!file) return null

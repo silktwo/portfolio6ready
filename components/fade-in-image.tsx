@@ -1,22 +1,25 @@
 "use client"
 
-import Image, { type ImageProps } from "next/image"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type ImgHTMLAttributes } from "react"
 
-type FadeInImageProps = Omit<ImageProps, "width" | "height"> & {
-  className?: string
+type FadeInImageProps = ImgHTMLAttributes<HTMLImageElement> & {
+  /**
+   * Eager-load this image and mark it as a preview the page-load mask should
+   * wait for. Use it for the first visible row so the page reveals complete.
+   */
+  priority?: boolean
 }
 
 /**
- * A responsive next/image (auto resize + avif/webp + srcset) that reveals with a
- * gentle rise + fade once it has loaded — the same "cards reveal as they appear"
- * feel as kimera. With loading="lazy" (the default), off-screen images load and
- * reveal only as you scroll near them.
+ * An <img> that reveals with a gentle rise + fade once it has loaded — the same
+ * "cards reveal as they appear" feel as kimera. Sources are already-WebP Notion
+ * files served straight from the CDN-cached proxy (no re-optimization), so they
+ * load fast. With loading="lazy" (default), off-screen images reveal on scroll.
  */
 export function FadeInImage({
   className = "",
-  sizes = "100vw",
-  alt = "",
+  priority = false,
+  loading,
   onLoad,
   onError,
   ...props
@@ -24,9 +27,6 @@ export function FadeInImage({
   const [revealed, setRevealed] = useState(false)
   const ref = useRef<HTMLImageElement>(null)
   const frames = useRef<number[]>([])
-
-  // SVGs (e.g. the placeholder) aren't optimized by next/image — render as-is.
-  const isSvg = typeof props.src === "string" && props.src.includes(".svg")
 
   // Defer two frames so the hidden initial state paints first — this guarantees
   // the rise + fade transition runs, even for instantly-cached images.
@@ -50,15 +50,13 @@ export function FadeInImage({
   }, [])
 
   return (
-    <Image
-      {...props}
+    <img
       ref={ref}
-      alt={alt}
-      sizes={sizes}
-      unoptimized={isSvg}
-      width={0}
-      height={0}
-      style={{ width: "100%", height: "auto" }}
+      {...props}
+      loading={priority ? "eager" : loading ?? "lazy"}
+      decoding="async"
+      fetchPriority={priority ? "high" : undefined}
+      data-preview-image={priority ? "true" : undefined}
       onLoad={(event) => {
         reveal()
         onLoad?.(event)

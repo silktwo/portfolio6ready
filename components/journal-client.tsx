@@ -8,7 +8,7 @@ import BackToTop from "@/components/back-to-top"
 import Footer from "@/components/footer"
 import { formatDate, type BlogPost } from "@/lib/notion"
 import { FadeInImage } from "@/components/fade-in-image"
-import { notionFileUrl } from "@/lib/notion-image"
+import { stableImageUrl } from "@/lib/notion-image"
 
 // Image Lightbox Component — matches the case page / personal projects viewer
 function ImageLightbox({
@@ -143,7 +143,7 @@ export default function JournalClient({ initialPosts }: { initialPosts: BlogPost
 
         // Stable, CDN-cacheable URLs for both the grid and the lightbox.
         const lightboxImages = images.map((image) => ({
-            url: notionFileUrl(entry.id, "attachments", image.rawIndex),
+            url: stableImageUrl(image.url, entry.id, "attachments", image.rawIndex),
             name: image.name,
         }))
 

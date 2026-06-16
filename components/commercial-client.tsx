@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { X } from "lucide-react"
 import { type CommercialProject } from "@/lib/notion-commercial-server"
 import { FadeInImage } from "@/components/fade-in-image"
-import { notionFileUrl } from "@/lib/notion-image"
+import { stableImageUrl } from "@/lib/notion-image"
 
 // Project Card Component
 function ProjectCard({ project, className = "", priority = false }: { project: CommercialProject; className?: string; priority?: boolean }) {
@@ -35,7 +35,7 @@ function ProjectCard({ project, className = "", priority = false }: { project: C
             </div>
             <div className="relative bg-gray-100 overflow-hidden rounded-[6px] dark:bg-[#181818]">
                 <FadeInImage
-                    src={imageError ? "/placeholder.svg" : notionFileUrl(project.id, "thumbnail", 0)}
+                    src={imageError ? "/placeholder.svg" : stableImageUrl(project.image, project.id, "thumbnail", 0)}
                     alt={project.title}
                     className="w-full h-auto object-contain rounded-[6px]"
                     priority={priority}

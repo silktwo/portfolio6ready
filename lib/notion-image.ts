@@ -51,3 +51,23 @@ export function proxyNotionImage(url: string | undefined | null): string {
 export function notionFileUrl(pageId: string, property: string, index = 0): string {
   return `/api/notion-file?pageId=${encodeURIComponent(pageId)}&property=${encodeURIComponent(property)}&index=${index}`
 }
+
+/**
+ * Picks the best image URL:
+ *  - A non-Notion URL (e.g. a Cloudflare R2 public link pasted into Notion) is
+ *    already stable and public, so it's used directly — no proxy, no resolve.
+ *  - A Notion-hosted file has an expiring signed URL, so we go through the
+ *    stable notion-file endpoint that re-resolves it on demand.
+ *
+ * This lets you migrate to R2 image-by-image: swap a file for an R2 link in
+ * Notion and it instantly switches to direct delivery.
+ */
+export function stableImageUrl(
+  rawUrl: string | undefined | null,
+  pageId: string,
+  property: string,
+  index = 0,
+): string {
+  if (rawUrl && !isNotionImageUrl(rawUrl)) return rawUrl
+  return notionFileUrl(pageId, property, index)
+}
